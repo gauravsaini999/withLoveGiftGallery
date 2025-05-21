@@ -8,12 +8,12 @@ import {
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Button } from '@react-navigation/elements';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { Button } from 'react-native-elements';
 
 function FeedScreen() {
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
       <Text>This is the Feed Screen</Text>
     </View>
   )
@@ -36,7 +36,11 @@ function HomeScreen() {
     // Now the button includes an `onPress` handler to update the count
     navigation.setOptions({
       headerRight: () => (
-        <Button onPress={() => setCount((c) => c + 1)}>Update count</Button>
+        <Button 
+          title="Update Count" 
+          onPress={() => setCount((c) => c + 1)}
+          buttonStyle={{ backgroundColor: 'green' }}
+          titleStyle={{ color: 'white' }}/>
       ),
     });
   }, [navigation]);
@@ -48,9 +52,10 @@ function HomeScreen() {
       <Button onPress={() => navigation.navigate('Details', {
         itemId: 86,
         otherParam: 'anything you want here',
-      })}>
-        Go to Details
-      </Button>
+      })}
+        title="Go To Details"
+        buttonStyle={{ backgroundColor: 'green' }}
+        titleStyle={{ color: 'white' }} />
     </View>
   );
 }
@@ -63,19 +68,23 @@ function DetailsScreen({ route }) {
       <Text>Details Screen</Text>
       <Text>itemId: {JSON.stringify(itemId)}</Text>
       <Text>otherParam: {JSON.stringify(otherParam)}</Text>
-      <Button onPress={() => navigation.navigate('Home')}>Go to Home</Button>
+      <Button title="Go to Home" onPress={() => navigation.navigate('Home')} buttonStyle={{ backgroundColor: 'green' }}
+        titleStyle={{ color: 'white' }} />
       <Button
+        title="Go to Details... again"
+        buttonStyle={{ backgroundColor: 'green' }}
+        titleStyle={{ color: 'white' }}
         onPress={
           () =>
             navigation.push('Details', {
               itemId: Math.floor(Math.random() * 100),
             })
         }
-      >
-        Go to Details... again
-      </Button>
-      <Button onPress={() => navigation.goBack()}>Go back</Button>
-      <Button onPress={() => navigation.navigate('More')}>Go to Tabs Screen</Button>
+      />
+      <Button title="Go Back" onPress={() => navigation.goBack()} buttonStyle={{ backgroundColor: 'green' }}
+        titleStyle={{ color: 'white' }} />
+      <Button onPress={() => navigation.navigate('More')} title="Go to Tabs Screen" buttonStyle={{ backgroundColor: 'green' }}
+        titleStyle={{ color: 'white' }} />
     </View>
   );
 }
@@ -87,7 +96,7 @@ const Stack = createNativeStackNavigator();
 function MoreTabs() {
   return (
     <Tab.Navigator
-      screenOptions={({route}) => ({
+      screenOptions={({ route }) => ({
         headerShown: false,
         tabBarIcon: ({ color, size }) => {
           let iconName;
@@ -116,6 +125,7 @@ export default function App() {
         initialRouteName="Home"
         screenOptions={{
           headerStyle: { backgroundColor: 'tomato' },
+          headerTintColor: 'white',
         }}
       >
         <Stack.Screen
@@ -124,7 +134,8 @@ export default function App() {
           options={{
             title: 'Overview',
             // You can override headerRight later in HomeScreen with setOptions
-            headerRight: () => <Button title="Update count" onPress={() => { }} />,
+            headerRight: () => <Button title="Update Count" buttonStyle={{ backgroundColor: 'green' }}
+              titleStyle={{ color: 'white' }} onPress={() => {}} />,
           }}
         />
         <Stack.Screen name="Details" component={DetailsScreen} />
