@@ -2,50 +2,148 @@
 
 import * as React from 'react';
 import { View, Text } from 'react-native';
-import { createStaticNavigation,
-        useNavigation
- } from '@react-navigation/native';
+import {
+  NavigationContainer,
+  useNavigation
+} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Button } from '@react-navigation/elements';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { Button } from 'react-native-elements';
+
+function FeedScreen() {
+  return (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+      <Text>This is the Feed Screen</Text>
+    </View>
+  )
+}
+
+function MessagesScreen() {
+  return (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+      <Text>This is the Messages Screen</Text>
+    </View>
+  )
+}
 
 function HomeScreen() {
   const navigation = useNavigation();
+  const [count, setCount] = React.useState(0);
+
+  React.useEffect(() => {
+    // Use `setOptions` to update the button that we previously specified
+    // Now the button includes an `onPress` handler to update the count
+    navigation.setOptions({
+      headerRight: () => (
+        <Button 
+          title="Update Count" 
+          onPress={() => setCount((c) => c + 1)}
+          buttonStyle={{ backgroundColor: 'green' }}
+          titleStyle={{ color: 'white' }}/>
+      ),
+    });
+  }, [navigation]);
+
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <Text>Home Screen</Text>
-      <Button onPress={() => navigation.navigate('Details')}>
-        Go to Details
-      </Button>
+      <Text>Count: {count}</Text>
+      <Button onPress={() => navigation.navigate('Details', {
+        itemId: 86,
+        otherParam: 'anything you want here',
+      })}
+        title="Go To Details"
+        buttonStyle={{ backgroundColor: 'green' }}
+        titleStyle={{ color: 'white' }} />
     </View>
   );
 }
 
-function DetailsScreen() {
+function DetailsScreen({ route }) {
+  const navigation = useNavigation();
+  const { itemId, otherParam } = route.params;
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <Text>Details Screen</Text>
+      <Text>itemId: {JSON.stringify(itemId)}</Text>
+      <Text>otherParam: {JSON.stringify(otherParam)}</Text>
+      <Button title="Go to Home" onPress={() => navigation.navigate('Home')} buttonStyle={{ backgroundColor: 'green' }}
+        titleStyle={{ color: 'white' }} />
+      <Button
+        title="Go to Details... again"
+        buttonStyle={{ backgroundColor: 'green' }}
+        titleStyle={{ color: 'white' }}
+        onPress={
+          () =>
+            navigation.push('Details', {
+              itemId: Math.floor(Math.random() * 100),
+            })
+        }
+      />
+      <Button title="Go Back" onPress={() => navigation.goBack()} buttonStyle={{ backgroundColor: 'green' }}
+        titleStyle={{ color: 'white' }} />
+      <Button onPress={() => navigation.navigate('More')} title="Go to Tabs Screen" buttonStyle={{ backgroundColor: 'green' }}
+        titleStyle={{ color: 'white' }} />
     </View>
   );
 }
 
-const RootStack = createNativeStackNavigator({
-  initialRouteName: 'Home',
-  screenOptions: {
-    headerStyle: { backgroundColor: 'tomato' },
-  },
-  screens: {
-    Home: {
-      screen: HomeScreen,
-      options: {
-        title: 'Overview',
-      },
-    },
-    Details: DetailsScreen
-  },
-});
+// Create navigators
+const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
 
-const Navigation = createStaticNavigation(RootStack);
+function MoreTabs() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarIcon: ({ color, size }) => {
+          let iconName;
+
+          if (route.name === 'Feed') {
+            iconName = 'list-outline'; // or 'rss', 'document-text-outline'
+          } else if (route.name === 'Messages') {
+            iconName = 'chatbubble-outline'; // or 'mail-outline'
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: 'tomato',
+        tabBarInactiveTintColor: 'gray',
+      })}>
+      <Tab.Screen name="Feed" component={FeedScreen} />
+      <Tab.Screen name="Messages" component={MessagesScreen} />
+    </Tab.Navigator>
+  );
+}
 
 export default function App() {
-  return <Navigation />;
+  return (
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName="Home"
+        screenOptions={{
+          headerStyle: { backgroundColor: 'tomato' },
+          headerTintColor: 'white',
+        }}
+      >
+        <Stack.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{
+            title: 'Overview',
+            // You can override headerRight later in HomeScreen with setOptions
+            headerRight: () => <Button title="Update Count" buttonStyle={{ backgroundColor: 'green' }}
+              titleStyle={{ color: 'white' }} onPress={() => {}} />,
+          }}
+        />
+        <Stack.Screen name="Details" component={DetailsScreen} />
+        <Stack.Screen
+          name="More"
+          component={MoreTabs}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
 }
