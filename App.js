@@ -11,7 +11,6 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 function ProfileIconButton({ onPress, changeStyle }) {
-  console.log(changeStyle, ' <---- changeStyle')
   return (
     <TouchableOpacity onPress={onPress}>
       <MaterialIcons name={changeStyle ? "account-circle" : "person-outline"} size={28} color="#fff" />
