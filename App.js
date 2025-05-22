@@ -1,99 +1,19 @@
-import * as React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
 import {
   NavigationContainer,
-  useNavigation,
-  useFocusEffect,
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-
-function ProfileIconButton({ onPress, changeStyle }) {
-  return (
-    <TouchableOpacity onPress={onPress}>
-      <MaterialIcons name={changeStyle ? "account-circle" : "person-outline"} size={28} color="#fff" />
-    </TouchableOpacity>
-  );
-}
-
-function ProfileScreen() {
-  const navigation = useNavigation();
-  useFocusEffect(
-    React.useCallback(() => {
-      navigation.setOptions({
-        headerRight: () => <ProfileIconButton changeStyle={true} onPress={() => {
-          navigation.navigate('Profile');
-        }} />
-      })
-    }, [navigation])
-  )
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
-      <Text>Your Profile Screen</Text>
-    </View>
-  )
-}
-
-function SelectedScreen() {
-  const navigation = useNavigation();
-  useFocusEffect(
-    React.useCallback(() => {
-      const parent = navigation.getParent();
-      if (parent) {
-        parent.setOptions({ title: 'Selected Toys' });
-      }
-    }, [navigation])
-  );
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
-      <Text>Your Selected Toys</Text>
-    </View>
-  )
-}
-
-function CartScreen() {
-  const navigation = useNavigation();
-  useFocusEffect(
-    React.useCallback(() => {
-      const parent = navigation.getParent();
-      if (parent) {
-        parent.setOptions({ title: 'Cart' });
-      }
-    }, [navigation])
-  );
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
-      <Text>Cart Screen</Text>
-    </View>
-  )
-}
-
-function HomeScreen() {
-  const navigation = useNavigation();
-
-  useFocusEffect(
-    React.useCallback(() => {
-      const parent = navigation.getParent();
-      if (parent) {
-        parent.setOptions({ headerTitle: 'Home' });
-      }
-    }, [navigation])
-  );
-
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text>Your Home Screen</Text>
-    </View>
-  );
-}
-
+import CartScreen from './screens/Cart';
+import HomeScreen from './screens/Home';
+import ProfileScreen from './screens/Profile';
+import ProfileIconButton from './components/ProfileButton';
+import SelectedScreen from './screens/SelectedToys';
 // Create navigators
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-function MoreTabs() {
+function TabbedNavigator() {
   return (
     <Tab.Navigator
       screenOptions={({ route, navigation }) => ({  
@@ -101,7 +21,7 @@ function MoreTabs() {
         headerRight: () => (<ProfileIconButton onPress={() => {
           navigation.navigate('Profile');
         }} changeStyle={false} />),
-        headerStyle: { backgroundColor: 'mediumturquoise' },
+        headerStyle: { backgroundColor: 'hotpink' },
         headerTintColor: 'white',
         tabBarIcon: ({ color, size }) => {
           let iconName;
@@ -146,7 +66,7 @@ function HomeStackNavigatorComponent() {
 export default function App() {
   return (
     <NavigationContainer>
-      <MoreTabs />
+      <TabbedNavigator />
     </NavigationContainer>
   );
 }
