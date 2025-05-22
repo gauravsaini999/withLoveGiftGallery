@@ -123,7 +123,7 @@ function MoreTabs() {
       <Tab.Screen name="Home" component={HomeStackNavigatorComponent} />
       <Tab.Screen name="Selected Toys" component={SelectedScreen} />
       <Tab.Screen name="Cart" component={CartScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} options={{ headerRight: () => null, tabBarItemStyle: { display: 'none' } }} />
+      <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
     </Tab.Navigator>
   );
 }
