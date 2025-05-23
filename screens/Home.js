@@ -1,8 +1,9 @@
 import { useNavigation } from "@react-navigation/native";
 import { useFocusEffect } from "@react-navigation/native";
 import * as React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView } from 'react-native';
 import ElevatedBox from '../shared/elevated_box';
+import MyCarousel from "../shared/carousel";
 
 
 export default function HomeScreen() {
@@ -32,33 +33,44 @@ export default function HomeScreen() {
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.imageContainer}>
-        <Image source={require('../assets/logo2.png')} style={styles.image} />
-      </View>
-      <View style={styles.mainContent}>
-        <View style={[styles.rowContent, { flex: 1}]}>
-          <View style={styles.boxItem}>
-            <ElevatedBox boxStyle={commonStyle} onLayout={updateSize} image={require('../assets/battery.webp')} text={"With Batteries"} />
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.scrollViewContainer}
+    >
+      <MyCarousel />
+      <View style={styles.container}>
+        <View style={styles.imageContainer}>
+          <Image source={require('../assets/logo2.png')} style={styles.image} />
+        </View>
+        <View style={styles.mainContent}>
+          <View style={[styles.rowContent, { flex: 1 }]}>
+            <View style={styles.boxItem}>
+              <ElevatedBox boxStyle={commonStyle} onLayout={updateSize} image={require('../assets/elephant_toy.png')} text={"Toys needing Cells"} />
+            </View>
+            <View style={styles.boxItem}>
+              <ElevatedBox boxStyle={commonStyle} onLayout={updateSize} image={require("../assets/game.jpg")} text={"Board Games"} />
+            </View>
           </View>
-          <View style={styles.boxItem}>
-            <ElevatedBox boxStyle={commonStyle} onLayout={updateSize} image={require("../assets/game.jpg")} text={"Board Games!"} />
+          <View style={[styles.rowContent, { flex: 1 }]}>
+            <View style={styles.boxItem}>
+              <ElevatedBox boxStyle={commonStyle} onLayout={updateSize} image={require("../assets/car.jpg")} text={"Need No Cells"} />
+            </View>
+            <View style={styles.boxItem}>
+              <ElevatedBox boxStyle={commonStyle} onLayout={updateSize} image={require("../assets/outdoor.jpg")} text={"Outdoor Fun"} />
+            </View>
           </View>
         </View>
-        <View style={[styles.rowContent, { flex: 1 }]}>
-          <View style={styles.boxItem}>
-            <ElevatedBox boxStyle={commonStyle} onLayout={updateSize} image={require("../assets/car.jpg")} text={"No Batteries"} />
-          </View>
-          <View style={styles.boxItem}>
-            <ElevatedBox boxStyle={commonStyle} onLayout={updateSize} image={require("../assets/outdoor.jpg")} text={"Outdoor Toys"} />
-          </View>
-        </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollViewContainer: {
+    paddingBottom: 20,
+    marginTop: 20,
+  },
   container: {
     flex: 1
   },
@@ -68,12 +80,13 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   mainContent: {
-    marginTop: 20,
+    marginVertical: 20,
     flex: 4,
   },
   rowContent: {
     flexDirection: 'row',
     flex: 1,
+    paddingBottom: 20,
   },
   boxItem: {
     flex: 1,

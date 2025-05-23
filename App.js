@@ -9,6 +9,7 @@ import HomeScreen from './screens/Home';
 import ProfileScreen from './screens/Profile';
 import ProfileIconButton from './components/ProfileButton';
 import SelectedScreen from './screens/SelectedToys';
+import { colors } from './shared/colors';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -16,17 +17,17 @@ const Stack = createNativeStackNavigator();
 function TabbedNavigator() {
   return (
     <Tab.Navigator
-      screenOptions={({ route, navigation }) => ({  
+      screenOptions={({ route, navigation }) => ({
         headerShown: true,
         headerRight: () => (<ProfileIconButton onPress={() => {
           navigation.navigate('Profile');
         }} changeStyle={false} />),
         headerStyle: {
-          backgroundColor: 'rgba(24, 187, 12, 0.7)',
+          backgroundColor: colors.headerAndTabBar[1],
         },
-        headerTintColor: '#000',    
-        headerTitleStyle: { 
-        color: '#000',             
+        headerTintColor: '#000',
+        headerTitleStyle: {
+          color: '#000',
           fontWeight: 'bold',
         },
         tabBarIcon: ({ focused, color, size }) => {
@@ -42,7 +43,7 @@ function TabbedNavigator() {
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarStyle: {
-          backgroundColor: 'rgba(24, 187, 12, 0.7)',
+          backgroundColor: colors.headerAndTabBar[1],
         },
         tabBarActiveTintColor: '#000',
         tabBarInactiveTintColor: '#000',

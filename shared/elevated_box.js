@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
     elevatedBox: {
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: colors.elevatedBox,
+        backgroundColor: colors.elevatedBox[1],
         borderRadius: 6,
         justifyContent: 'center',
         textAlign: 'center',
