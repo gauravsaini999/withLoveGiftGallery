@@ -21,23 +21,31 @@ function TabbedNavigator() {
         headerRight: () => (<ProfileIconButton onPress={() => {
           navigation.navigate('Profile');
         }} changeStyle={false} />),
-        headerStyle: { backgroundColor: 'hotpink' },
-        headerTintColor: 'white',
-        tabBarIcon: ({ color, size }) => {
+        headerStyle: {
+          backgroundColor: 'rgba(24, 187, 12, 0.7)',
+        },
+        headerTintColor: '#fff',    
+        headerTitleStyle: { 
+        color: '#fff',             
+          fontWeight: 'bold',
+        },
+        tabBarIcon: ({ focused, color, size }) => {
           let iconName;
           if (route.name === 'Home') {
-            iconName = 'home-outline';
+            iconName = focused ? 'home' : 'home-outline';
           }
           else if (route.name === 'Selected Toys') {
-            iconName = 'list-outline'; // or 'rss', 'document-text-outline'
+            iconName = focused ? 'list' : 'list-outline'; // or 'rss', 'document-text-outline'
           } else if (route.name === 'Cart') {
-            iconName = 'cart-outline'; // or 'mail-outline'
+            iconName = focused ? 'cart' : 'cart-outline'; // or 'mail-outline'
           }
-
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: 'mediumturquoise',
-        tabBarInactiveTintColor: 'gray',
+        tabBarStyle: {
+          backgroundColor: 'rgba(24, 187, 12, 0.7)',
+        },
+        tabBarActiveTintColor: '#fafafa',
+        tabBarInactiveTintColor: '#fefefe',
       })}>
       <Tab.Screen name="Home" component={HomeStackNavigatorComponent} />
       <Tab.Screen name="Selected Toys" component={SelectedScreen} />
@@ -53,6 +61,9 @@ function HomeStackNavigatorComponent() {
       initialRouteName="HomeScreen"
       screenOptions={{
         headerShown: false,
+        contentStyle: {
+          backgroundColor: 'rgba(24, 187, 12, 0.5)',
+        },
       }}
     >
       <Stack.Screen

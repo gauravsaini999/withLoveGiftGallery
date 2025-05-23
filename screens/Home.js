@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
   },
   image: {
     borderRadius: 15,
-    borderColor: 'rgba(255, 105, 180, 0.9)',
+    borderColor: 'rgba(197, 130, 164, 0.9)',
     borderWidth: 2,
     width: 110,
     height: 110,

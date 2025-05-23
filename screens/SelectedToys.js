@@ -1,7 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import { useFocusEffect } from "@react-navigation/native";
 import * as React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 
 export default function SelectedScreen() {
   const navigation = useNavigation();
@@ -14,8 +14,14 @@ export default function SelectedScreen() {
     }, [navigation])
   );
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
-      <Text>Your Selected Toys</Text>
+    <View style={styles.screenArea}>
+      <Text style={styles.textScreen}>Your Selected Toys</Text>
     </View>
   )
 }
+
+
+const styles = StyleSheet.create({
+  screenArea: { flex: 1, alignItems: 'center', justifyContent: 'center', textAlign: 'center', backgroundColor: 'rgba(24, 187, 12, 0.5)' },
+  textScreen: { color: '#FFF'}
+})
