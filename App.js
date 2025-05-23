@@ -23,11 +23,11 @@ function TabbedNavigator() {
           navigation.navigate('Profile');
         }} changeStyle={false} />),
         headerStyle: {
-          backgroundColor: colors.headerAndTabBar[1],
+          backgroundColor: colors.headerAndTabBar[2],
         },
-        headerTintColor: '#000',
+        headerTintColor: '#555',
         headerTitleStyle: {
-          color: '#000',
+          color: '#555',
           fontWeight: 'bold',
         },
         tabBarIcon: ({ focused, color, size }) => {
@@ -43,10 +43,10 @@ function TabbedNavigator() {
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarStyle: {
-          backgroundColor: colors.headerAndTabBar[1],
+          backgroundColor: colors.headerAndTabBar[2],
         },
-        tabBarActiveTintColor: '#000',
-        tabBarInactiveTintColor: '#000',
+        tabBarActiveTintColor: '#555',
+        tabBarInactiveTintColor: '#666',
       })}>
       <Tab.Screen name="Home" component={HomeStackNavigatorComponent} />
       <Tab.Screen name="Selected Toys" component={SelectedScreen} />

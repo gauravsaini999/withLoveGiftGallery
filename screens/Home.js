@@ -46,7 +46,7 @@ export default function HomeScreen() {
         <View style={styles.mainContent}>
           <View style={[styles.rowContent, { flex: 1 }]}>
             <View style={styles.boxItem}>
-              <ElevatedBox boxStyle={commonStyle} onLayout={updateSize} image={require('../assets/elephant_toy.png')} text={"Toys needing Cells"} />
+              <ElevatedBox boxStyle={commonStyle} onLayout={updateSize} image={require('../assets/elephant_toy.png')} text={"Toys Needing Cells"} />
             </View>
             <View style={styles.boxItem}>
               <ElevatedBox boxStyle={commonStyle} onLayout={updateSize} image={require("../assets/game.jpg")} text={"Board Games"} />
