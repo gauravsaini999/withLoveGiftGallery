@@ -9,7 +9,7 @@ import HomeScreen from './screens/Home';
 import ProfileScreen from './screens/Profile';
 import ProfileIconButton from './components/ProfileButton';
 import SelectedScreen from './screens/SelectedToys';
-// Create navigators
+
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
@@ -24,9 +24,9 @@ function TabbedNavigator() {
         headerStyle: {
           backgroundColor: 'rgba(24, 187, 12, 0.7)',
         },
-        headerTintColor: '#fff',    
+        headerTintColor: '#000',    
         headerTitleStyle: { 
-        color: '#fff',             
+        color: '#000',             
           fontWeight: 'bold',
         },
         tabBarIcon: ({ focused, color, size }) => {
@@ -44,8 +44,8 @@ function TabbedNavigator() {
         tabBarStyle: {
           backgroundColor: 'rgba(24, 187, 12, 0.7)',
         },
-        tabBarActiveTintColor: '#fafafa',
-        tabBarInactiveTintColor: '#fefefe',
+        tabBarActiveTintColor: '#000',
+        tabBarInactiveTintColor: '#000',
       })}>
       <Tab.Screen name="Home" component={HomeStackNavigatorComponent} />
       <Tab.Screen name="Selected Toys" component={SelectedScreen} />
@@ -62,7 +62,7 @@ function HomeStackNavigatorComponent() {
       screenOptions={{
         headerShown: false,
         contentStyle: {
-          backgroundColor: 'rgba(24, 187, 12, 0.5)',
+          backgroundColor: 'rgba(232, 241, 231, 0.5)',
         },
       }}
     >

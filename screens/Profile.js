@@ -2,6 +2,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { View, Text, StyleSheet } from 'react-native';
 import ProfileIconButton from '../components/ProfileButton';
 import * as React from 'react';
+import { colors } from '../shared/colors'
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
@@ -22,6 +23,6 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  screenArea: { flex: 1, alignItems: 'center', justifyContent: 'center', textAlign: 'center', backgroundColor: 'rgba(24, 187, 12, 0.5)' },
-  textScreen: { color: '#FFF'}
+  screenArea: { flex: 1, alignItems: 'center', justifyContent: 'center', textAlign: 'center', backgroundColor: colors.screenContent },
+  textScreen: { color: '#888'}
 })

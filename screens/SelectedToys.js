@@ -2,6 +2,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useFocusEffect } from "@react-navigation/native";
 import * as React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { colors } from '../shared/colors'
 
 export default function SelectedScreen() {
   const navigation = useNavigation();
@@ -22,6 +23,6 @@ export default function SelectedScreen() {
 
 
 const styles = StyleSheet.create({
-  screenArea: { flex: 1, alignItems: 'center', justifyContent: 'center', textAlign: 'center', backgroundColor: 'rgba(24, 187, 12, 0.5)' },
-  textScreen: { color: '#FFF'}
+  screenArea: { flex: 1, alignItems: 'center', justifyContent: 'center', textAlign: 'center', backgroundColor: colors.screenContent },
+  textScreen: { color: '#888'}
 })
