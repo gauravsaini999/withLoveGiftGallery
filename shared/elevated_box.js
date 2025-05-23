@@ -21,9 +21,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: colors.elevatedBox,
-        borderRadius: 10,
+        borderRadius: 6,
         justifyContent: 'center',
         textAlign: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 20,
 
         // Android
         elevation: 5,
@@ -38,8 +40,8 @@ const styles = StyleSheet.create({
         shadowRadius: 2,
     },
     img: {
-        width: 100,
-        height: 100,
+        width: 150,
+        height: 150,
         resizeMode: 'contain',
     },
     text: {
