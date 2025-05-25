@@ -5,11 +5,8 @@ import { View, Text, StyleSheet } from 'react-native';
 import { colors } from '../shared/colors'
 import IOSBackButton from "../components/CustomBackButton";
 import { useNavigationHistory } from "../zustand/useNavigationHistory";
-import { useScreenTracking } from "../shared/useScreenTracking";
 
 export default function CartScreen() {
-  useScreenTracking();
-  
   const { history } = useNavigationHistory();
   const navigation = useNavigation();
 

@@ -5,14 +5,11 @@ import { View, Text, Image, StyleSheet, ScrollView } from 'react-native';
 import ElevatedBox from '../shared/elevated_box';
 import MyCarousel from "../shared/carousel";
 import IOSBackButton from "../components/CustomBackButton";
-import { useScreenTracking } from "../shared/useScreenTracking";
 import { useNavigationHistory } from "../zustand/useNavigationHistory";
 
 
 export default function HomeScreen() {
-  useScreenTracking();
-  
-  const { history } = useNavigationHistory();
+  const { history, push } = useNavigationHistory();
   const navigation = useNavigation();
 
   const [maxWidth, setMaxWidth] = React.useState(0);
@@ -38,6 +35,10 @@ export default function HomeScreen() {
       });
     }, [navigation, history])
   );
+
+  React.useLayoutEffect(() => {
+    push('Home');
+  }, [])
 
   return (
     <ScrollView

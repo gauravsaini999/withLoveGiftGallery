@@ -4,12 +4,9 @@ import * as React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors } from '../shared/colors'
 import { useNavigationHistory } from "../zustand/useNavigationHistory";
-import { useScreenTracking } from "../shared/useScreenTracking";
 import IOSBackButton from "../components/CustomBackButton";
 
 export default function SelectedScreen() {
-  useScreenTracking();
-  
   const navigation = useNavigation();
   const { history } = useNavigationHistory();
 

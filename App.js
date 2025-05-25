@@ -1,8 +1,6 @@
 import * as React from 'react';
 import {
-  NavigationContainer,
-  useNavigation,
-  useFocusEffect
+  NavigationContainer
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -17,19 +15,8 @@ import { useNavigationHistory } from './zustand/useNavigationHistory';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
-
 function TabbedNavigator() {
-  const navigation = useNavigation();
-  const { reset } = useNavigationHistory();
-
-  useFocusEffect(
-    React.useCallback(() => {
-      return () => {
-        reset();
-      }
-    }, [navigation])
-  )
-  return (  
+  return (
     <Tab.Navigator
       screenOptions={({ route, navigation }) => ({
         headerShown: true,
@@ -73,7 +60,7 @@ function TabbedNavigator() {
 function HomeStackNavigatorComponent() {
   return (
     <Stack.Navigator
-      initialRouteName="HomeScreen"
+      initialRouteName="Home Screen"
       screenOptions={{
         headerShown: false,
         contentStyle: {
@@ -82,17 +69,53 @@ function HomeStackNavigatorComponent() {
       }}
     >
       <Stack.Screen
-        name="HomeScreen"
+        name="Home Screen"
         component={HomeScreen}
       />
     </Stack.Navigator>
   )
 }
 
+function getActiveRouteName(state) {
+  if (!state || !state.routes || state.index == null) return null;
+  const route = state.routes[state.index];
+  if (route.state) {
+    // Recursively dive into nested navigators
+    return getActiveRouteName(route.state);
+  }
+  return route.name || null;
+}
+
 export default function App() {
+  const { push, pop, history } = useNavigationHistory();
+  const routeNameRef = React.useRef(null);
   return (
-    <NavigationContainer>
+    <NavigationContainer
+      onReady={(nav) => {
+        const rootState = nav?.getRootState?.();
+        if (!rootState) return;
+
+        const initialRoute = getActiveRouteName(rootState);
+        if (initialRoute) {
+          routeNameRef.current = initialRoute;
+          push(initialRoute);
+        }
+      }}
+      onStateChange={(state) => {
+        const currentRoute = getActiveRouteName(state);
+        const previousRoute = routeNameRef.current;
+
+        if (!currentRoute || currentRoute === previousRoute) return;
+
+        if (history.length >= 2 && history[history.length - 2] === currentRoute) {
+          pop(); // went back
+        } else {
+          push(currentRoute); // went forward
+        }
+
+        routeNameRef.current = currentRoute;
+      }}>
       <TabbedNavigator />
-    </NavigationContainer>
+    </NavigationContainer >
   );
 }

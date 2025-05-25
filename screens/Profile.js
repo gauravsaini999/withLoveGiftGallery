@@ -5,12 +5,9 @@ import * as React from 'react';
 import { colors } from '../shared/colors';
 import SignUpForm from './login/SignupForm';
 import IOSBackButton from '../components/CustomBackButton';
-import { useScreenTracking } from '../shared/useScreenTracking';
 import { useNavigationHistory } from '../zustand/useNavigationHistory';
 
 export default function ProfileScreen() {
-  useScreenTracking();
-  
   const { history } = useNavigationHistory();
   const navigation = useNavigation();
 
