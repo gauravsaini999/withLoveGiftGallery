@@ -11,6 +11,6 @@ export function useScreenTracking() {
   useFocusEffect(
     useCallback(() => {
       push(route.name);
-    }, [route.name]);
+    }, [route.name])
   );
 }
