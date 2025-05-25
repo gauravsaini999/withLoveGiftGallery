@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export const useAuth = create((set, get) => ({
+export const useAuthStateSlice = create((set, get) => ({
     isLoggedIn: false,
     userObj: null,
     loginFn: (userObj) => set((state) => ({
