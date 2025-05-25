@@ -1,19 +1,27 @@
 import { useNavigation } from "@react-navigation/native";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useRoute } from "@react-navigation/native";
 import * as React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors } from '../shared/colors'
+import IOSBackButton from "../components/CustomBackButton";
+import { useNavigationHistory } from "../zustand/useNavigationHistory";
+import { useScreenTracking } from "../shared/useScreenTracking";
 
 export default function CartScreen() {
+  useScreenTracking();
+  
+  const { history } = useNavigationHistory();
   const navigation = useNavigation();
+
   useFocusEffect(
     React.useCallback(() => {
-      const parent = navigation.getParent();
-      if (parent) {
-        parent.setOptions({ title: 'Cart' });
-      }
-    }, [navigation])
+      navigation.setOptions({
+        title: 'Cart',
+        headerLeft: history.length > 1 ? () => <IOSBackButton /> : null,
+      });
+    }, [navigation, history.length])
   );
+
   return (
     <View style={styles.screenArea}>
       <Text style={styles.textScreen}>Cart Screen</Text>
@@ -23,5 +31,5 @@ export default function CartScreen() {
 
 const styles = StyleSheet.create({
   screenArea: { flex: 1, alignItems: 'center', justifyContent: 'center', textAlign: 'center', backgroundColor: colors.screenContent },
-  textScreen: { color: '#888'}
+  textScreen: { color: '#888' }
 })

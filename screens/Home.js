@@ -4,9 +4,15 @@ import * as React from 'react';
 import { View, Text, Image, StyleSheet, ScrollView } from 'react-native';
 import ElevatedBox from '../shared/elevated_box';
 import MyCarousel from "../shared/carousel";
+import IOSBackButton from "../components/CustomBackButton";
+import { useScreenTracking } from "../shared/useScreenTracking";
+import { useNavigationHistory } from "../zustand/useNavigationHistory";
 
 
 export default function HomeScreen() {
+  useScreenTracking();
+  
+  const { history } = useNavigationHistory();
   const navigation = useNavigation();
 
   const [maxWidth, setMaxWidth] = React.useState(0);
@@ -26,10 +32,11 @@ export default function HomeScreen() {
   useFocusEffect(
     React.useCallback(() => {
       const parent = navigation.getParent();
-      if (parent) {
-        parent.setOptions({ headerTitle: 'Home' });
-      }
-    }, [navigation])
+      parent.setOptions({
+        headerTitle: 'Home',
+        headerLeft: history.length > 1 ? () => <IOSBackButton /> : null,
+      });
+    }, [navigation, history])
   );
 
   return (

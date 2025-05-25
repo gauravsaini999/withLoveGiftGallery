@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAuthInstance } from '../../firebase/firebaseConfig';
+// import { getAuthInstance } from '../../firebase/firebaseConfig';
 import { View, TextInput, Button, Text, StyleSheet, Alert } from 'react-native';
 import {
   createUserWithEmailAndPassword,
@@ -9,18 +9,19 @@ import {
 } from 'firebase/auth';
 
 export default function SignUpForm() {
-  const auth = getAuthInstance();
+  // const auth = getAuthInstance();
+  // const auth = {};
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);  // Always set user, even if null (logged out)
-    });
-    return unsubscribe;
-  }, [auth]);
+  // useEffect(() => {
+  //   const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+  //     setUser(currentUser);  // Always set user, even if null (logged out)
+  //   });
+  //   return unsubscribe;
+  // }, [auth]);
 
   const validateInputs = () => {
     if (!email) {

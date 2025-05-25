@@ -1,5 +1,8 @@
+import * as React from 'react';
 import {
   NavigationContainer,
+  useNavigation,
+  useFocusEffect
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -10,12 +13,22 @@ import ProfileScreen from './screens/Profile';
 import ProfileIconButton from './components/ProfileButton';
 import SelectedScreen from './screens/SelectedToys';
 import { colors } from './shared/colors';
-import { auth } from './firebase/firebaseConfig';
+import { useNavigationHistory } from './zustand/useNavigationHistory';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 function TabbedNavigator() {
+  const navigation = useNavigation();
+  const { reset } = useNavigationHistory();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        reset();
+      }
+    }, [navigation])
+  )
   return (  
     <Tab.Navigator
       screenOptions={({ route, navigation }) => ({
@@ -26,9 +39,9 @@ function TabbedNavigator() {
         headerStyle: {
           backgroundColor: colors.headerAndTabBar[2],
         },
-        headerTintColor: '#555',
+        headerTintColor: '#444',
         headerTitleStyle: {
-          color: '#555',
+          color: '#444',
           fontWeight: 'bold',
         },
         tabBarIcon: ({ focused, color, size }) => {
@@ -46,8 +59,8 @@ function TabbedNavigator() {
         tabBarStyle: {
           backgroundColor: colors.headerAndTabBar[2],
         },
-        tabBarActiveTintColor: '#555',
-        tabBarInactiveTintColor: '#666',
+        tabBarActiveTintColor: '#333',
+        tabBarInactiveTintColor: '#444',
       })}>
       <Tab.Screen name="Home" component={HomeStackNavigatorComponent} />
       <Tab.Screen name="Selected Toys" component={SelectedScreen} />
