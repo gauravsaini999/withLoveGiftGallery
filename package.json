@@ -1,7 +1,7 @@
 {
   "name": "toys",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -9,12 +9,14 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "2.1.2",
     "@react-navigation/bottom-tabs": "^7.3.13",
     "@react-navigation/elements": "^2.4.2",
     "@react-navigation/native": "^7.1.9",
     "@react-navigation/native-stack": "^7.3.13",
     "eas-cli": "^16.6.2",
     "expo": "~53.0.9",
+    "expo-secure-store": "~14.2.3",
     "expo-status-bar": "~2.2.3",
     "firebase": "^11.8.1",
     "react": "19.0.0",
@@ -27,7 +29,8 @@
     "zustand": "^5.0.5"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.20.0",
+    "@react-native-community/cli": "latest"
   },
   "private": true
 }

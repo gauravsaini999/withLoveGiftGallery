@@ -10,12 +10,13 @@ import ProfileScreen from './screens/Profile';
 import ProfileIconButton from './components/ProfileButton';
 import SelectedScreen from './screens/SelectedToys';
 import { colors } from './shared/colors';
+import { auth } from './firebase/firebaseConfig';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 function TabbedNavigator() {
-  return (
+  return (  
     <Tab.Navigator
       screenOptions={({ route, navigation }) => ({
         headerShown: true,
