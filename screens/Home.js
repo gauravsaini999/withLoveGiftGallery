@@ -72,6 +72,9 @@ export default function HomeScreen() {
       }
       fn();
     }
+    if (app) {
+      getAuth();
+    }
   }, [app]);
 
   if (!firebaseInitialized) {
