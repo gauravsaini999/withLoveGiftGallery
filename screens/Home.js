@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from "@react-navigation/native";
 import { useFocusEffect } from "@react-navigation/native";
 import * as React from 'react';
@@ -6,11 +7,15 @@ import ElevatedBox from '../shared/elevated_box';
 import MyCarousel from "../shared/carousel";
 import IOSBackButton from "../components/CustomBackButton";
 import { useNavigationHistory } from "../zustand/useNavigationHistory";
-
+import { useFirebaseInit } from "../zustand/useFirebaseInit";
 
 export default function HomeScreen() {
   const { history, push } = useNavigationHistory();
   const navigation = useNavigation();
+
+  const { firebaseConfig, setAuth, auth } = useFirebaseInit();
+
+  const [firebaseInitialized, setFirebaseInitialized] = React.useState(false);
 
   const [maxWidth, setMaxWidth] = React.useState(0);
   const [maxHeight, setMaxHeight] = React.useState(0);
@@ -38,7 +43,36 @@ export default function HomeScreen() {
 
   React.useLayoutEffect(() => {
     push('Home');
-  }, [])
+  }, []);
+
+  React.useEffect(() => {
+    async function loadFirebase() {
+      const { initializeApp, getApps, getApp } = await import('firebase/app');
+      let app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+      setFirebaseInitialized(true);
+      console.log(app, '----------app');
+
+      setTimeout(async () => {
+        const { initializeAuth, getReactNativePersistence } = await import('firebase/auth');
+        setAuth(initializeAuth(app, {
+          persistence: getReactNativePersistence(AsyncStorage),
+        }));
+      }, 2000); // Adjust delay if needed
+    }
+    loadFirebase(); // Call the async function inside useEffect
+  }, []);
+
+  React.useEffect(() => {
+    console.log(auth, 'auth.......<<<<<<<');
+  }, [auth])
+
+  if (!firebaseInitialized) {
+    return (
+      <View>
+        <Text>Loading Firebase...</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView
@@ -47,7 +81,7 @@ export default function HomeScreen() {
       contentContainerStyle={styles.scrollViewContainer}
     >
       <MyCarousel />
-      <View style={styles.container}>
+      <View style={styles.containerStyles}>
         <View style={styles.imageContainer}>
           <Image source={require('../assets/logo2.png')} style={styles.image} />
         </View>
@@ -79,7 +113,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     marginTop: 20,
   },
-  container: {
+  containerStyles: {
     flex: 1
   },
   imageContainer: {
