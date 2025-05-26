@@ -13,7 +13,7 @@ export default function HomeScreen() {
   const { history, push } = useNavigationHistory();
   const navigation = useNavigation();
 
-  const { firebaseConfig, setAuth, auth } = useFirebaseInit();
+  const { firebaseConfig, setApp, setAuth, app } = useFirebaseInit();
 
   const [firebaseInitialized, setFirebaseInitialized] = React.useState(false);
 
@@ -49,22 +49,30 @@ export default function HomeScreen() {
     async function loadFirebase() {
       const { initializeApp, getApps, getApp } = await import('firebase/app');
       let app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+      setApp(app);
       setFirebaseInitialized(true);
-      console.log(app, '----------app');
-
-      setTimeout(async () => {
-        const { initializeAuth, getReactNativePersistence } = await import('firebase/auth');
-        setAuth(initializeAuth(app, {
-          persistence: getReactNativePersistence(AsyncStorage),
-        }));
-      }, 2000); // Adjust delay if needed
     }
     loadFirebase(); // Call the async function inside useEffect
   }, []);
 
   React.useEffect(() => {
-    console.log(auth, 'auth.......<<<<<<<');
-  }, [auth])
+    async function getAuth() {
+      const { initializeAuth, getReactNativePersistence, getAuth } = await import('firebase/auth');
+      const fn = () => {
+        let _auth;
+        try {
+          _auth = getAuth(); // Try to get existing auth instance
+        } catch (error) {
+          console.log("Auth not initialized, initializing now...");
+          _auth = initializeAuth(app, {
+            persistence: getReactNativePersistence(AsyncStorage),
+          });
+        }
+        setAuth(_auth);
+      }
+      fn();
+    }
+  }, [app]);
 
   if (!firebaseInitialized) {
     return (

@@ -22,8 +22,16 @@ export const useFirebaseInit = create((set, get) => ({
     },
     app: {},
     auth: {},
-    setAuth: (auth) => set((state) => ({
-        ...state,
-        auth
-    }))
-}));
+    setApp: (app) => set((state) => {
+        return {
+            ...state,
+            app
+        }
+    }),
+    setAuth: (auth) => set((state) => {
+        return {
+            ...state,
+            auth
+        }
+    })
+}))

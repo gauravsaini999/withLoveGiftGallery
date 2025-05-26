@@ -21,7 +21,6 @@ export default function ProfileScreen() {
 
   useFocusEffect(
     React.useCallback(() => {
-      alert(JSON.stringify(auth));
       const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
         setUser(currentUser);  // Always set user, even if null (logged out)
       });
