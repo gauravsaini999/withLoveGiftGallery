@@ -12,7 +12,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import CartScreen from './screens/Cart';
 import HomeScreen from './screens/Home';
-import ProfileScreen from './screens/Profile';
+import ProfileScreen from './screens/Profile1';
 import ProfileIconButton from './components/ProfileButton';
 import SelectedScreen from './screens/SelectedToys';
 import { colors } from './shared/colors';

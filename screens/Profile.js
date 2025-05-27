@@ -14,6 +14,7 @@ export default function ProfileScreen() {
   const route = useRoute();
   const navigation = useNavigation();
   const { auth } = useFirebaseInit();
+  const [user, setUser] = React.useState(null);
   const [values, setValues] = React.useState({
     email: '',
     password: '',
@@ -23,7 +24,6 @@ export default function ProfileScreen() {
   const [handler, setHandler] = React.useState({
     fn: () => { }
   })
-  const [user, setUser] = React.useState(null);
 
   React.useEffect(() => {
     if (formType === 'Sign Up')
@@ -173,7 +173,6 @@ export default function ProfileScreen() {
         </View>
       </View>
     </TouchableWithoutFeedback>
-
   )
 }
 
