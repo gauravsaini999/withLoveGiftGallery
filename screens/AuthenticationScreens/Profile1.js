@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, ScrollView, Text, StatusBar, Platform, UIManager, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { View, ScrollView, Text, StatusBar, Platform, UIManager, Keyboard, TouchableWithoutFeedback, KeyboardAvoidingView, StyleSheet, Button } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import LoginScreen from "react-native-login-screen";
 import { useFirebaseInit } from '../../zustand/useFirebaseInit';
@@ -43,10 +43,9 @@ const ProfileScreen = () => {
     decider();
   }, [enableSignUp])
 
-  // const passwordFocusTime = React.useRef(0);
-  // const [passwordFocusTime, setPasswordFocusTime] = React.useState(0);
-  let passwordFocusTime = 0;
-  const autofillThreshold = 10000; // milliseconds
+  const passwordFocusTime = React.useRef(0);
+  // const debounceTimeout = React.useRef(null);
+  const autofillThreshold = 50; // milliseconds
   const { history } = useNavigationHistory();
   const navigation = useNavigation();
   const { auth } = useFirebaseInit();
@@ -55,9 +54,8 @@ const ProfileScreen = () => {
 
   useFocusEffect(
     React.useCallback(() => {
-      handleReset();
       const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-        setUser(currentUser);  // Always set user, even if null (logged out)
+        setUser(currentUser);
         console.log('currentUser' + currentUser);
         if (currentUser) {
           navigation.navigate('Home');
@@ -81,41 +79,51 @@ const ProfileScreen = () => {
     }, [navigation, history.length]))
 
   const handleChange = (inputIdentifier, enteredValue) => {
-    setValues((previous) => {
+    setValues((prev) => {
       return {
-        ...previous,
+        ...prev,
         [inputIdentifier]: enteredValue,
-        error: previous.error
+        error: prev.error
       }
     })
     if (inputIdentifier === 'password') {
-      console.log(values.password, enteredValue)
-
-      // const elapsed = Date.now() - passwordFocusTime.current;
-      console.log(Date.now(), passwordFocusTime, 'all values...')
-      const elapsed = Date.now() - passwordFocusTime;
-      console.log(elapsed, autofillThreshold, 'both values comparison')
+      const elapsed = Date.now() - passwordFocusTime.current;
       if (!values.password && elapsed < autofillThreshold) {
         console.log('Password autofilled!');
         Keyboard.dismiss();
       }
       else if (values.password && values.password == enteredValue) {
-        console.log('dismissing .....');
         Keyboard.dismiss();
       }
+      // if (debounceTimeout.current) {
+      //   clearTimeout(debounceTimeout.current);
+      // }
+
+      // // Start a new debounce timeout
+      // debounceTimeout.current = setTimeout(() => {
+      //   if (enteredValue.length > 0) {
+      //     console.log('User idle after password entry. Dismissing keyboard...');
+      //     Keyboard.dismiss();
+      //   }
+      // }, 1000); // 2 second debounce
     }
   }
 
+  // React.useEffect(() => {
+  //   return () => {
+  //     if (debounceTimeout.current) {
+  //       clearTimeout(debounceTimeout.current);
+  //     }
+  //   };
+  // }, []);
+
   const handlePasswordFocus = () => {
-    // passwordFocusTime.current = Date.now();
-    // setPasswordFocusTime(Date.now())
-    passwordFocusTime = Date.now()
-  };
+    passwordFocusTime.current = Date.now();
+  }
 
   const validateInputs = () => {
     if (!values['username']) {
       setValues((previous) => {
-        alert(previous.username, previous.password)
         return { ...previous, error: 'Email is required.' }
       });
       return false;
@@ -180,34 +188,32 @@ const ProfileScreen = () => {
     decider();
   }
 
-  React.useEffect(() => {
-    console.log({ "isLoggedIn": isLoggedIn, "userObj": userObj });
-  }, [userObj, isLoggedIn])
-
   const renderSignupLoginScreen = () => (
-    <LoginScreen
-      logoImageSource={require('../../assets/logo2.png')}
-      onLoginPress={() => handleSignup()}
-      // onSignupPress={() => handleSignup()}
-      onEmailChange={handleChange.bind(this, 'username')}
-      loginButtonText={'Create an account'}
-      disableSignup
-      // enablePasswordValidation
-      textInputChildren={
-        <View style={{ marginTop: 16 }}>
-          <TextInput
-            placeholder="Re-Password"
-            secureTextEntry={!visible}
-            onChangeText={handleChange.bind(this, 'repassword')}
-            enableIcon={true}
-            iconImageSource={visible ? require('../../assets/eye.png') : require('../../assets/eye-off.png')}
-            onIconPress={() => setVisible(v => !v)}
-          />
-          {values.error && <Text>{values.error}</Text>}
-        </View >
-      }
-      onPasswordChange={handleChange.bind(this, 'password')}
-    />)
+    <View style={styles.container}>
+      <LoginScreen
+        logoImageSource={require('../../assets/logo2.png')}
+        onLoginPress={() => handleSignup()}
+        onSignupPress={() => setEnableSignUp(false)}
+        onEmailChange={handleChange.bind(this, 'username')}
+        loginButtonText={'Create an account'}
+        signupText={"Back to Sign In"}
+        // enablePasswordValidation
+        textInputChildren={
+          <View style={{ marginTop: 16 }}>
+            <TextInput
+              placeholder="Re-Password"
+              secureTextEntry={!visible}
+              onChangeText={handleChange.bind(this, 'repassword')}
+              enableIcon={true}
+              iconImageSource={visible ? require('../../assets/eye.png') : require('../../assets/eye-off.png')}
+              onIconPress={() => setVisible(v => !v)}
+            />
+            {values.error && <Text>{values.error}</Text>}
+          </View >
+        }
+        onPasswordChange={handleChange.bind(this, 'password')}
+      />
+    </View>)
 
   const renderLoginScreen = () => (
     <LoginScreen
@@ -225,19 +231,41 @@ const ProfileScreen = () => {
         autoComplete: "password",
         textContentType: "password",
         returnKeyType: "done",
-        onFocus: handlePasswordFocus
+        onFocus: handlePasswordFocus,
       }}
     />
   );
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <ScrollView style={{ flex: 1 }}>
-        <StatusBar barStyle="light-content" />
-        {enableSignUp ? renderSignupLoginScreen() : renderLoginScreen()}
-      </ScrollView>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
+      >
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled">
+          <StatusBar barStyle="light-content" />
+          {enableSignUp ? renderSignupLoginScreen() : renderLoginScreen()}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
 }
 
 export default ProfileScreen;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center', // Center in the middle
+  },
+  autoButton: {
+    paddingHorizontal: 20, // Adjust as needed
+    paddingVertical: 10,
+    backgroundColor: '#2089dc',
+  },
+  buttonContainer: {
+    alignSelf: 'flex-start', // Shrinks to fit content
+  },
+});
