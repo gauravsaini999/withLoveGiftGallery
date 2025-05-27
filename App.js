@@ -10,11 +10,11 @@ import { enableScreens } from 'react-native-screens';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import CartScreen from './screens/Cart';
-import HomeScreen from './screens/Home';
-import ProfileScreen from './screens/Profile1';
+import CartScreen from './screens/HomeTabs/Cart';
+import HomeScreen from './screens/HomeTabs/Home';
+import ProfileScreen from './screens/AuthenticationScreens/Profile1';
 import ProfileIconButton from './components/ProfileButton';
-import SelectedScreen from './screens/SelectedToys';
+import SelectedScreen from './screens/HomeTabs/SelectedToys';
 import { colors } from './shared/colors';
 import { useNavigationHistory } from './zustand/useNavigationHistory';
 

@@ -2,12 +2,12 @@ import * as React from 'react';
 import { View, ScrollView, Text, StatusBar, Platform, UIManager, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import LoginScreen from "react-native-login-screen";
-import { useFirebaseInit } from '../zustand/useFirebaseInit';
-import { useNavigationHistory } from '../zustand/useNavigationHistory';
-import { useAuthenticationStateSlice } from '../zustand/useAuthenticationStateSlice';
-import IOSBackButton from '../components/CustomBackButton';
+import { useFirebaseInit } from '../../zustand/useFirebaseInit';
+import { useNavigationHistory } from '../../zustand/useNavigationHistory';
+import { useAuthenticationStateSlice } from '../../zustand/useAuthenticationStateSlice';
+import IOSBackButton from '../../components/CustomBackButton';
 import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import ProfileIconButton from '../components/ProfileButton';
+import ProfileIconButton from '../../components/ProfileButton';
 import TextInput from "react-native-text-input-interactive";
 
 if (
@@ -26,15 +26,18 @@ const ProfileScreen = () => {
     repassword: '',
     error: ''
   });
+
+  const passwordFocusTime = React.useRef(0);
+  const autofillThreshold = 100; // milliseconds
+  const handlePasswordFocus = () => {
+    passwordFocusTime.current = Date.now();
+  };
+
   const { history } = useNavigationHistory();
   const navigation = useNavigation();
   const { auth } = useFirebaseInit();
   const { loginFn, logoutFn, isLoggedIn, userObj } = useAuthenticationStateSlice();
   const [user, setUser] = React.useState(null);
-
-  // React.useLayoutEffect(() => {
-  //   handleLogout();
-  // }, []);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -70,6 +73,13 @@ const ProfileScreen = () => {
         error: ''
       }
     })
+    if (inputIdentifier === 'password') {
+      const elapsed = Date.now() - passwordFocusTime.current;
+      if (elapsed < autofillThreshold) {
+        console.log('Password autofilled!');
+        Keyboard.dismiss();
+      }
+    }
   }
 
   const validateInputs = () => {
@@ -147,12 +157,12 @@ const ProfileScreen = () => {
   }
 
   React.useEffect(() => {
-    console.log({ "isLoggedIn": isLoggedIn, "userObj": userObj })
+    console.log({ "isLoggedIn": isLoggedIn, "userObj": userObj });
   }, [userObj, isLoggedIn])
 
   const renderSignupLoginScreen = () => (
     <LoginScreen
-      logoImageSource={require('../assets/logo2.png')}
+      logoImageSource={require('../../assets/logo2.png')}
       onLoginPress={() => handleSignup()}
       // onSignupPress={() => handleSignup()}
       onEmailChange={handleChange.bind(this, 'username')}
@@ -166,7 +176,7 @@ const ProfileScreen = () => {
             secureTextEntry={!visible}
             onChangeText={handleChange.bind(this, 'repassword')}
             enableIcon={true}
-            iconImageSource={visible ? require('../assets/eye.png') : require('../assets/eye-off.png')}
+            iconImageSource={visible ? require('../../assets/eye.png') : require('../../assets/eye-off.png')}
             onIconPress={() => setVisible(v => !v)}
           />
           {values.error && <Text>{values.error}</Text>}
@@ -177,11 +187,22 @@ const ProfileScreen = () => {
 
   const renderLoginScreen = () => (
     <LoginScreen
-      logoImageSource={require('../assets/logo2.png')}
+      logoImageSource={require('../../assets/logo2.png')}
       onLoginPress={() => { handleSignIn() }}
       onSignupPress={() => setEnableSignUp(true)}
       onEmailChange={handleChange.bind(this, 'username')}
       onPasswordChange={handleChange.bind(this, 'password')}
+      emailTextInputProps={{
+        autoComplete: "email",
+        textContentType: "emailAddress",
+        returnKeyType: "next",
+      }}
+      passwordTextInputProps={{
+        autoComplete: "password",
+        textContentType: "password",
+        returnKeyType: "done",
+        onFocus: handlePasswordFocus
+      }}
     />
   );
 

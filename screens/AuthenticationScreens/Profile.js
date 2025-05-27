@@ -1,13 +1,13 @@
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { View, StyleSheet, Button, Text, Keyboard, TouchableWithoutFeedback } from 'react-native';
-import ProfileIconButton from '../components/ProfileButton';
+import ProfileIconButton from '../../components/ProfileButton';
 import * as React from 'react';
-import { colors } from '../shared/colors';
-import IOSBackButton from '../components/CustomBackButton';
-import { useNavigationHistory } from '../zustand/useNavigationHistory';
+import { colors } from '../../shared/colors';
+import IOSBackButton from '../../components/CustomBackButton';
+import { useNavigationHistory } from '../../zustand/useNavigationHistory';
 import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { useFirebaseInit } from '../zustand/useFirebaseInit';
-import CustomInput from '../components/CustomInput';
+import { useFirebaseInit } from '../../zustand/useFirebaseInit';
+import CustomInput from '../../components/CustomInput';
 
 export default function ProfileScreen() {
   const { history } = useNavigationHistory();
