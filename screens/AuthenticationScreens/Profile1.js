@@ -27,12 +27,26 @@ const ProfileScreen = () => {
     error: ''
   });
 
-  const passwordFocusTime = React.useRef(0);
-  const autofillThreshold = 100; // milliseconds
-  const handlePasswordFocus = () => {
-    passwordFocusTime.current = Date.now();
-  };
+  const decider = () => {
+    if (enableSignUp) {
+      setValues({
+        username: '', password: '', repassword: '', error: ''
+      })
+    }
+    else {
+      setValues({
+        username: '', password: '', error: ''
+      })
+    }
+  }
+  React.useEffect(() => {
+    decider();
+  }, [enableSignUp])
 
+  // const passwordFocusTime = React.useRef(0);
+  // const [passwordFocusTime, setPasswordFocusTime] = React.useState(0);
+  let passwordFocusTime = 0;
+  const autofillThreshold = 10000; // milliseconds
   const { history } = useNavigationHistory();
   const navigation = useNavigation();
   const { auth } = useFirebaseInit();
@@ -41,6 +55,7 @@ const ProfileScreen = () => {
 
   useFocusEffect(
     React.useCallback(() => {
+      handleReset();
       const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
         setUser(currentUser);  // Always set user, even if null (logged out)
         console.log('currentUser' + currentUser);
@@ -51,7 +66,7 @@ const ProfileScreen = () => {
       return () => {
         unsubscribe();
       }
-    }, [auth]))
+    }, [auth]));
 
   useFocusEffect(
     React.useCallback(() => {
@@ -70,17 +85,32 @@ const ProfileScreen = () => {
       return {
         ...previous,
         [inputIdentifier]: enteredValue,
-        error: ''
+        error: previous.error
       }
     })
     if (inputIdentifier === 'password') {
-      const elapsed = Date.now() - passwordFocusTime.current;
-      if (elapsed < autofillThreshold) {
+      console.log(values.password, enteredValue)
+
+      // const elapsed = Date.now() - passwordFocusTime.current;
+      console.log(Date.now(), passwordFocusTime, 'all values...')
+      const elapsed = Date.now() - passwordFocusTime;
+      console.log(elapsed, autofillThreshold, 'both values comparison')
+      if (!values.password && elapsed < autofillThreshold) {
         console.log('Password autofilled!');
+        Keyboard.dismiss();
+      }
+      else if (values.password && values.password == enteredValue) {
+        console.log('dismissing .....');
         Keyboard.dismiss();
       }
     }
   }
+
+  const handlePasswordFocus = () => {
+    // passwordFocusTime.current = Date.now();
+    // setPasswordFocusTime(Date.now())
+    passwordFocusTime = Date.now()
+  };
 
   const validateInputs = () => {
     if (!values['username']) {
@@ -105,7 +135,6 @@ const ProfileScreen = () => {
       const userCredential = await createUserWithEmailAndPassword(auth, values.username, values.password);
       const user = userCredential.user;
       if (user) {
-        alert('Hurray !!!')
         handleReset();
       }
     } catch (err) {
@@ -148,12 +177,7 @@ const ProfileScreen = () => {
   };
 
   const handleReset = () => {
-    setValues({
-      email: '',
-      password: '',
-      repassword: '',
-      error: ''
-    });
+    decider();
   }
 
   React.useEffect(() => {
