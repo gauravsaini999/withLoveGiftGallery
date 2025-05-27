@@ -168,7 +168,7 @@ export default function ProfileScreen() {
           }} />
         {!!values.error && <Text style={styles.error}>{values.error}</Text>}
         <View style={styles.buttons}>
-          <Button title={formType} onPress={handler.fn} />
+          <Button title={`${formType}`} onPress={handler.fn} />
           <Button title="Reset" onPress={handleReset} />
         </View>
       </View>

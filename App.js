@@ -29,7 +29,7 @@ function TabbedNavigator() {
           navigation.navigate('Profile', { formType: 'Sign Up' });
         }} changeStyle={false} />),
         headerStyle: {
-          backgroundColor: colors.headerAndTabBar[2],
+          backgroundColor: colors.headerAndTabBar[3],
         },
         headerTintColor: '#444',
         headerTitleStyle: {
@@ -49,7 +49,7 @@ function TabbedNavigator() {
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarStyle: {
-          backgroundColor: colors.headerAndTabBar[2],
+          backgroundColor: colors.headerAndTabBar[3],
         },
         tabBarActiveTintColor: '#333',
         tabBarInactiveTintColor: '#444',
@@ -98,7 +98,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <StatusBar barStyle="dark-content" />
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#DEDEDE' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#EEE' }}>
         <NavigationContainer
           onReady={(nav) => {
             const rootState = nav?.getRootState?.();
