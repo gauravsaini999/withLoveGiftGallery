@@ -4,6 +4,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import LoginScreen from "react-native-login-screen";
 import { useFirebaseInit } from '../zustand/useFirebaseInit';
 import { useNavigationHistory } from '../zustand/useNavigationHistory';
+import { useAuthenticationStateSlice } from '../zustand/useAuthenticationStateSlice';
 import IOSBackButton from '../components/CustomBackButton';
 import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import ProfileIconButton from '../components/ProfileButton';
@@ -28,11 +29,12 @@ const ProfileScreen = () => {
   const { history } = useNavigationHistory();
   const navigation = useNavigation();
   const { auth } = useFirebaseInit();
+  const { loginFn, logoutFn, isLoggedIn, userObj } = useAuthenticationStateSlice();
   const [user, setUser] = React.useState(null);
 
-  React.useLayoutEffect(() => {
-    handleLogout();
-  }, []);
+  // React.useLayoutEffect(() => {
+  //   handleLogout();
+  // }, []);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -90,9 +92,9 @@ const ProfileScreen = () => {
   const handleSignup = async () => {
     if (!validateInputs()) return;
     try {
-      await createUserWithEmailAndPassword(auth, values.username, values.password);
-      const currentUser = auth.currentUser;
-      if (currentUser) {
+      const userCredential = await createUserWithEmailAndPassword(auth, values.username, values.password);
+      const user = userCredential.user;
+      if (user) {
         alert('Hurray !!!')
         handleReset();
       }
@@ -110,6 +112,7 @@ const ProfileScreen = () => {
       const currentUser = auth.currentUser;
       if (currentUser) {
         setUser(currentUser);
+        loginFn(currentUser);
         handleReset();
       }
     } catch (err) {
@@ -124,6 +127,7 @@ const ProfileScreen = () => {
       await signOut(auth);
       const currentUser = auth?.currentUser;
       if (!currentUser) {
+        logoutFn();
         handleReset();
       }
     } catch (err) {
@@ -141,6 +145,10 @@ const ProfileScreen = () => {
       error: ''
     });
   }
+
+  React.useEffect(() => {
+    console.log({ "isLoggedIn": isLoggedIn, "userObj": userObj })
+  }, [userObj, isLoggedIn])
 
   const renderSignupLoginScreen = () => (
     <LoginScreen
