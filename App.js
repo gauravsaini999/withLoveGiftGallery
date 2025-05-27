@@ -98,7 +98,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <StatusBar barStyle="dark-content" />
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#EEE' }}>
+      {/* <SafeAreaView style={{ flex: 1, backgroundColor: '#EEE' }}> */}
         <NavigationContainer
           onReady={(nav) => {
             const rootState = nav?.getRootState?.();
@@ -126,7 +126,7 @@ export default function App() {
           }}>
           <TabbedNavigator />
         </NavigationContainer>
-      </SafeAreaView>
+      {/* </SafeAreaView> */}
     </SafeAreaProvider>
   );
 }
