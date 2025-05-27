@@ -23,7 +23,7 @@ function TabbedNavigator() {
       screenOptions={({ route, navigation }) => ({
         headerShown: true,
         headerRight: () => (<ProfileIconButton onPress={() => {
-          navigation.navigate('Profile');
+          navigation.navigate('Profile', { formType: 'Sign Up' });
         }} changeStyle={false} />),
         headerStyle: {
           backgroundColor: colors.headerAndTabBar[2],

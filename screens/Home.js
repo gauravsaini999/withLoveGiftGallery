@@ -63,7 +63,6 @@ export default function HomeScreen() {
         try {
           _auth = getAuth(); // Try to get existing auth instance
         } catch (error) {
-          console.log("Auth not initialized, initializing now...");
           _auth = initializeAuth(app, {
             persistence: getReactNativePersistence(AsyncStorage),
           });
