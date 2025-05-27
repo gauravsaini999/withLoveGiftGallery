@@ -1,5 +1,5 @@
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
-import { View, StyleSheet, Button, Text } from 'react-native';
+import { View, StyleSheet, Button, Text, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import ProfileIconButton from '../components/ProfileButton';
 import * as React from 'react';
 import { colors } from '../shared/colors';
@@ -19,10 +19,9 @@ export default function ProfileScreen() {
     password: '',
     error: ''
   })
-
-  formType = route?.params?.formType;
+  const formType = route?.params?.formType;
   const [handler, setHandler] = React.useState({
-    fn: handleSignup
+    fn: () => { }
   })
   const [user, setUser] = React.useState(null);
 
@@ -34,18 +33,24 @@ export default function ProfileScreen() {
   }, [formType])
 
   const handleChange = (inputIdentifier, enteredValue) => {
-    setValues((previous) => ({
-      ...previous,
-      [inputIdentifier]: enteredValue
-    }))
+    setValues((previous) => {
+      return {
+        ...previous,
+        [inputIdentifier]: enteredValue,
+        error: ''
+      }
+    })
+    if (user)
+      handleLogout()
   }
 
-  React.useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);  // Always set user, even if null (logged out)
-    });
-    return unsubscribe
-  }, [auth])
+  useFocusEffect(
+    React.useCallback(() => {
+      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        setUser(currentUser);  // Always set user, even if null (logged out)
+      });
+      return unsubscribe
+    }, [auth]))
 
   useFocusEffect(
     React.useCallback(() => {
@@ -61,26 +66,34 @@ export default function ProfileScreen() {
   )
 
   const validateInputs = () => {
-    if (!values.email) {
-      setValues((previous) => ({ ...previous, error: 'Email is required.' }));
+    if (!values['email']) {
+      setValues((previous) => {
+        console.log(previous.email, previous.password)
+        return { ...previous, error: 'Email is required.' }
+      });
       return false;
     }
-    if (!values.password) {
-      setValues((previous) => ({ ...previous, error: 'Password is required.' }));
+    if (!values['password']) {
+      setValues((previous) => {
+        return { ...previous, error: 'Password is required.' }
+      });
       return false;
     }
     return true;
   };
 
   const handleSignup = async () => {
-    alert('here', values.email, values.password)
     if (!validateInputs()) return;
     try {
       await createUserWithEmailAndPassword(auth, values.email, values.password);
-      Alert.alert('Success', 'User account created!');
-      handleReset();
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        handleReset();
+      }
     } catch (err) {
-      setValues((previous) => ({ ...previous, error: err.message }));
+      setValues((previous) => {
+        return { ...previous, error: err.message }
+      });
     }
   };
 
@@ -88,19 +101,29 @@ export default function ProfileScreen() {
     if (!validateInputs()) return;
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
-      Alert.alert('Success', 'User logged in!');
-      handleReset();
+      Alert('Success', 'User logged in!');
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        handleReset();
+      }
     } catch (err) {
-      setValues((previous) => ({ ...previous, error: err.message }));
+      setValues((previous) => {
+        return { ...previous, error: err.message }
+      });
     }
   };
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      handleReset();
+      const currentUser = auth?.currentUser;
+      if (!currentUser) {
+        handleReset();
+      }
     } catch (err) {
-      setValues((previous) => ({ ...previous, error: err.message }));
+      setValues((previous) => {
+        return { ...previous, error: err.message }
+      });
     }
   };
 
@@ -122,39 +145,40 @@ export default function ProfileScreen() {
   }
 
   return (
-    <View style={styles.screenArea}>
-      <Text style={styles.title}>Sign Up</Text>
-      <CustomInput label="Username (email address)" textInputConfig={{
-        keyboardType: 'email-address',
-        placeholder: "Email",
-        onChangeText: handleChange.bind(this, 'email'),
-        autoCapitalize: "none",
-        autoComplete: 'off',
-        value: values.email,
-        autoFocus: false
-      }} />
-      <CustomInput label="Password"
-        textInputConfig={{
-          placeholder: "Password",
-          onChangeText: handleChange.bind(this, 'password'),
-          keyboardType: "default",
-          autoCapitalize: 'none',
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.screenArea}>
+        <CustomInput label="Username (email address)" textInputConfig={{
+          keyboardType: 'email-address',
+          placeholder: "Email",
+          onChangeText: handleChange.bind(this, 'email'),
+          autoCapitalize: "none",
           autoComplete: 'off',
-          value: values.password,
-          autoFocus: false,
+          value: values.email,
+          autoFocus: false
         }} />
-      {!!values.error && <Text style={styles.error}>{values.error}</Text>}
-      <View style={styles.buttons}>
-        <Button title={formType} onPress={handleLogin} />
-        <Button title="Reset" onPress={handleReset} />
+        <CustomInput label="Password"
+          textInputConfig={{
+            placeholder: "Password",
+            onChangeText: handleChange.bind(this, 'password'),
+            keyboardType: "default",
+            autoCapitalize: 'none',
+            autoComplete: 'off',
+            value: values.password,
+            autoFocus: false,
+          }} />
+        {!!values.error && <Text style={styles.error}>{values.error}</Text>}
+        <View style={styles.buttons}>
+          <Button title={formType} onPress={handler.fn} />
+          <Button title="Reset" onPress={handleReset} />
+        </View>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
+
   )
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: 22, color: '#555', fontWeight: 'bold', marginVertical: 24, textAlign: 'center' },
-  screenArea: { flex: 1, alignItems: 'center', justifyContent: 'center', textAlign: 'center', backgroundColor: colors.screenContent },
+  screenArea: { flex: 1, alignItems: 'center', paddingTop: 50, justifyContent: 'flex-start', textAlign: 'center', backgroundColor: colors.screenContent },
   textScreen: { color: '#888' },
   buttons: {
     flexDirection: 'row',

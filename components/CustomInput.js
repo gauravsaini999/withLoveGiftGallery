@@ -16,11 +16,11 @@ const CustomInput = ({ label, textInputConfig }) => {
     <View style={styles.inputContainer}>
       <Text style={styles.label}>{label}</Text>
       {label == 'Password' ?
-        <View style={[styles.passwordContainer, { minWidth: 200, paddingRight: 6 }]}>
+        <View style={[styles.passwordContainer, { width: 200, paddingRight: 6 }]}>
           <TextInput style={[styles.input, { flex: 1 }]} {...textInputConfig} secureTextEntry={!visible} />
           <AddEyeIcon />
         </View> :
-        <TextInput style={[styles.input, { minWidth: 200}]} {...textInputConfig} />
+        <TextInput style={[styles.input, { width: 200}]} {...textInputConfig} />
       }
     </View>
   )
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 6,
-    minWidth: 200,
+    Width: 200,
     backgroundColor: '#CCC'
   },
   input: {

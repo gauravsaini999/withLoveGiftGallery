@@ -1,8 +1,11 @@
 import * as React from 'react';
 import {
+  StatusBar
+} from 'react-native';
+import {
   NavigationContainer
 } from '@react-navigation/native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { enableScreens } from 'react-native-screens';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -94,33 +97,36 @@ export default function App() {
   enableScreens();
   return (
     <SafeAreaProvider>
-      <NavigationContainer
-        onReady={(nav) => {
-          const rootState = nav?.getRootState?.();
-          if (!rootState) return;
+      <StatusBar barStyle="dark-content" />
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#DEDEDE' }}>
+        <NavigationContainer
+          onReady={(nav) => {
+            const rootState = nav?.getRootState?.();
+            if (!rootState) return;
 
-          const initialRoute = getActiveRouteName(rootState);
-          if (initialRoute) {
-            routeNameRef.current = initialRoute;
-            push(initialRoute);
-          }
-        }}
-        onStateChange={(state) => {
-          const currentRoute = getActiveRouteName(state);
-          const previousRoute = routeNameRef.current;
+            const initialRoute = getActiveRouteName(rootState);
+            if (initialRoute) {
+              routeNameRef.current = initialRoute;
+              push(initialRoute);
+            }
+          }}
+          onStateChange={(state) => {
+            const currentRoute = getActiveRouteName(state);
+            const previousRoute = routeNameRef.current;
 
-          if (!currentRoute || currentRoute === previousRoute) return;
+            if (!currentRoute || currentRoute === previousRoute) return;
 
-          if (history.length >= 2 && history[history.length - 2] === currentRoute) {
-            pop(); // went back
-          } else {
-            push(currentRoute); // went forward
-          }
+            if (history.length >= 2 && history[history.length - 2] === currentRoute) {
+              pop(); // went back
+            } else {
+              push(currentRoute); // went forward
+            }
 
-          routeNameRef.current = currentRoute;
-        }}>
-        <TabbedNavigator />
-      </NavigationContainer>
+            routeNameRef.current = currentRoute;
+          }}>
+          <TabbedNavigator />
+        </NavigationContainer>
+      </SafeAreaView>
     </SafeAreaProvider>
   );
 }
