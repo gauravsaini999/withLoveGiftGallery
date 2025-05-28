@@ -18,7 +18,7 @@ const MyOrders = () => {
     React.useCallback(() => {
       // alert("<< EditProfile >>==" + JSON.stringify(auth));
       navigation.setOptions({
-        headerTitle: 'Edit Profile',
+        headerTitle: 'My Orders',
         headerLeft: history.length > 1 ? () => <IOSBackButton /> : null,
         headerRight: () => (<TouchableOpacity onPress={handleLogout} activeOpacity={0.7}>
           <Ionicons name="log-out-outline" size={24} color="#333" />

@@ -49,7 +49,7 @@ const ProfileScreen = () => {
   const autofillThreshold = 50; // milliseconds
   const { history } = useNavigationHistory();
   const navigation = useNavigation();
-  const { auth, setAuth, app, setApp } = useFirebaseInit();
+  const { auth } = useFirebaseInit();
   const { loginFn, isLoggedIn } = useAuthenticationStateSlice();
 
   React.useEffect(() => {

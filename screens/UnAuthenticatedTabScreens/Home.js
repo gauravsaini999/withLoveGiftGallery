@@ -10,13 +10,12 @@ import { useNavigationHistory } from "../../zustand/useNavigationHistory";
 import { useFirebaseInit } from "../../zustand/useFirebaseInit";
 import { signOut } from 'firebase/auth';
 import { useAuthenticationStateSlice } from '../../zustand/useAuthenticationStateSlice';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 
 export default function HomeScreen() {
   const { history, push } = useNavigationHistory();
   const navigation = useNavigation();
 
-  const { logoutFn, loginFn } = useAuthenticationStateSlice();
+  const { logoutFn, loginFn, isLoggedIn } = useAuthenticationStateSlice();
   const { firebaseConfig, setApp, setAuth, app, auth } = useFirebaseInit();
 
   const [firebaseInitialized, setFirebaseInitialized] = React.useState(false);
@@ -56,7 +55,7 @@ export default function HomeScreen() {
   }, []);
 
   React.useEffect(() => {
-    if (app) {
+    if (Object.keys(app).length > 1 && Object.keys(auth).length === 1) {
       loadAuth();
     }
   }, [app]);
@@ -87,12 +86,11 @@ export default function HomeScreen() {
       onAuthStateChanged(auth, (user) => {
         console.log("user = ", user);
         if (user) {
-          alert('Restored user:' + user);
           loginFn(user);
         }
       });
     }
-    if(auth) {
+    if (Object.keys(auth).length && !isLoggedIn) {
       called();
     }
   }, [auth])

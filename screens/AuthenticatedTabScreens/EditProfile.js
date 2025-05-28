@@ -16,7 +16,6 @@ const EditProfile = () => {
 
   useFocusEffect(
     React.useCallback(() => {
-      // alert("<< EditProfile >>==" + JSON.stringify(auth));
       navigation.setOptions({
         headerTitle: 'Edit Profile',
         headerLeft: () => <IntraScreenBackButton />,
