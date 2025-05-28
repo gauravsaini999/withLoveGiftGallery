@@ -139,10 +139,11 @@ function getActiveRouteName(state) {
 }
 
 export default function App() {
-  const { push, pop, history, profilePress, setActiveRoute, activeRoute } = useNavigationHistory();
+  const { push, pop, history, profilePress, setActiveRoute } = useNavigationHistory();
   const routeNameRef = React.useRef(null);
   const { isLoggedIn } = useAuthenticationStateSlice();
   enableScreens();
+  // To check whether persistence is actually happening in zustand
   // AsyncStorage.getItem('firebase-storage').then((value) => {
   //   console.log('Persisted raw JSON:', value);
   // });
