@@ -8,10 +8,10 @@ import {
     FIREBASE_APP_ID,
     MEASUREMENT_ID
 } from '@env';
-import { persist, createJSONStorage } from 'zustand/middleware'
-import AsyncStorage from '@react-native-async-storage/async-storage'
+// import { persist, createJSONStorage } from 'zustand/middleware'
+// import AsyncStorage from '@react-native-async-storage/async-storage'
 
-export const useFirebaseInit = create(persist((set, get) => ({
+export const useFirebaseInit = create((set, get) => ({
     firebaseConfig: {
         apiKey: FIREBASE_API_KEY,
         authDomain: FIREBASE_AUTH_DOMAIN,
@@ -21,8 +21,8 @@ export const useFirebaseInit = create(persist((set, get) => ({
         appId: FIREBASE_APP_ID,
         measurementId: MEASUREMENT_ID
     },
-    app: { blank: true },
-    auth: { blank: true },
+    app: {},
+    auth: {},
     setApp: (app) => set((state) => {
         return {
             ...state,
@@ -35,9 +35,10 @@ export const useFirebaseInit = create(persist((set, get) => ({
             auth
         }
     })
-}),
-    {
-        name: 'firebase-storage',
-        storage: createJSONStorage(() => AsyncStorage)
-    }
-))
+}))
+// ,
+//     {
+//         name: 'firebase-storage',
+//         storage: createJSONStorage(() => AsyncStorage)
+//     }
+// ));

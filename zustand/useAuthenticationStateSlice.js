@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-export const useAuthenticationStateSlice = create(persist((set, get) => ({
+export const useAuthenticationStateSlice = create((set, get) => ({
     isLoggedIn: false,
     userObj: null,
     loginFn: (userObj) => set((state) => {
@@ -15,9 +15,10 @@ export const useAuthenticationStateSlice = create(persist((set, get) => ({
         isLoggedIn: false,
         userObj: null
     }))
-}),
-    {
-        name: 'auth-storage',
-        storage: createJSONStorage(() => AsyncStorage)
-    }
-));
+}))
+// ,
+//     {
+//         name: 'auth-storage',
+//         storage: createJSONStorage(() => AsyncStorage)
+//     }
+// ));

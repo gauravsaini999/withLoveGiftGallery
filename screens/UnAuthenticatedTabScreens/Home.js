@@ -55,7 +55,7 @@ export default function HomeScreen() {
   }, []);
 
   React.useEffect(() => {
-    if (Object.keys(app).length > 1 && Object.keys(auth).length === 1) {
+    if (Object.keys(app).length && !Object.keys(auth).length) {
       loadAuth();
     }
   }, [app]);
