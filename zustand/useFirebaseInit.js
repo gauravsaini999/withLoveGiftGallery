@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { getReactNativePersistence, initializeAuth } from 'firebase/auth';
 import {
     FIREBASE_API_KEY,
     FIREBASE_AUTH_DOMAIN,

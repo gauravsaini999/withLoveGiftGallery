@@ -16,7 +16,7 @@ export default function HomeScreen() {
   const { history, push } = useNavigationHistory();
   const navigation = useNavigation();
 
-  const { logoutFn } = useAuthenticationStateSlice();
+  const { logoutFn, loginFn } = useAuthenticationStateSlice();
   const { firebaseConfig, setApp, setAuth, app, auth } = useFirebaseInit();
 
   const [firebaseInitialized, setFirebaseInitialized] = React.useState(false);
@@ -51,6 +51,16 @@ export default function HomeScreen() {
     push('Home');
   }, []);
 
+  React.useEffect(() => {
+    loadFirebase();
+  }, []);
+
+  React.useEffect(() => {
+    if (app) {
+      loadAuth();
+    }
+  }, [app]);
+
   async function loadFirebase() {
     const { initializeApp, getApps, getApp } = await import('firebase/app');
     let app = getApps().length ? getApp() : initializeApp(firebaseConfig);
@@ -58,21 +68,34 @@ export default function HomeScreen() {
     setFirebaseInitialized(true);
   }
 
-  async function setupFirebaseAuth() {
-    const { initializeAuth, getReactNativePersistence, getAuth } = await import('firebase/auth');
-    const fn = () => {
-      let _auth;
-      try {
-        _auth = getAuth(app); // Try to get existing auth instance
-      } catch (error) {
-        _auth = initializeAuth(app, {
-          persistence: getReactNativePersistence(AsyncStorage),
-        });
-      }
-      setAuth(_auth);
+  const loadAuth = async () => {
+    const { initializeAuth, getReactNativePersistence } = await import('firebase/auth');
+    const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+    try {
+      const auth = initializeAuth(app, {
+        persistence: getReactNativePersistence(AsyncStorage),
+      });
+      setAuth(auth);
+    } catch (err) {
+      console.log("error = ", err);
     }
-    fn();
-  }
+  };
+
+  React.useEffect(() => {
+    const called = async () => {
+      const { onAuthStateChanged } = await import('firebase/auth');
+      onAuthStateChanged(auth, (user) => {
+        console.log("user = ", user);
+        if (user) {
+          alert('Restored user:' + user);
+          loginFn(user);
+        }
+      });
+    }
+    if(auth) {
+      called();
+    }
+  }, [auth])
 
   const handleLogout = async () => {
     try {
@@ -87,36 +110,25 @@ export default function HomeScreen() {
     }
   };
 
-  React.useEffect(() => {
-    loadFirebase();
-  }, []);
-
-  React.useEffect(() => {
-    setupFirebaseAuth();
-    if (app) {
-      setupFirebaseAuth();
-    }
-  }, [app]);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      let unsubscribe = null;
-      async function callable() {
-        const { onAuthStateChanged } = await import('firebase/auth');
-        unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-          if (currentUser) {
-            // const parent = navigation.getParent();
-            // parent.setOptions({
-            //   headerRight: () => (<TouchableOpacity onPress={handleLogout} activeOpacity={0.7}>
-            //     <Ionicons name="log-out-outline" size={24} color="#333" />
-            //   </TouchableOpacity>)
-            // })
-          }
-        });
-      }
-      callable();
-    }, [auth])
-  )
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     let unsubscribe = null;
+  //     async function callable() {
+  //       const { onAuthStateChanged } = await import('firebase/auth');
+  //       unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+  //         if (currentUser) {
+  //           const parent = navigation.getParent();
+  //           parent.setOptions({
+  //             headerRight: () => (<TouchableOpacity onPress={handleLogout} activeOpacity={0.7}>
+  //               <Ionicons name="log-out-outline" size={24} color="#333" />
+  //             </TouchableOpacity>)
+  //           })
+  //         }
+  //       });
+  //     }
+  //     callable();
+  //   }, [auth])
+  // )
   if (!firebaseInitialized) {
     return (
       <View>

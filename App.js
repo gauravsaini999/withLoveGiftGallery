@@ -3,7 +3,8 @@ import {
   StatusBar
 } from 'react-native';
 import {
-  NavigationContainer
+  NavigationContainer,
+  useRoute
 } from '@react-navigation/native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { enableScreens } from 'react-native-screens';
@@ -26,12 +27,14 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 function UnauthenticatedTabbedNavigator() {
+  const { setProfilePress } = useNavigationHistory();
   return (
     <Tab.Navigator
       screenOptions={({ route, navigation }) => ({
         headerShown: true,
         headerRight: () => (<ProfileIconButton onPress={() => {
           navigation.navigate('Profile');
+          setProfilePress(true);
         }} changeStyle={false} />),
         headerStyle: {
           backgroundColor: colors.headerAndTabBar[3],
@@ -70,7 +73,7 @@ function UnauthenticatedTabbedNavigator() {
 function AuthenticatedTabbedNavigator() {
   return (
     <Tab.Navigator
-      screenOptions={({ route, navigation }) => ({
+      screenOptions={({ route }) => ({
         headerShown: true,
         headerStyle: {
           backgroundColor: colors.headerAndTabBar[3],
@@ -135,7 +138,7 @@ function getActiveRouteName(state) {
 }
 
 export default function App() {
-  const { push, pop, history } = useNavigationHistory();
+  const { push, pop, history, profilePress, setActiveRoute, activeRoute } = useNavigationHistory();
   const routeNameRef = React.useRef(null);
   const { isLoggedIn } = useAuthenticationStateSlice();
   enableScreens();
@@ -150,6 +153,7 @@ export default function App() {
 
             const initialRoute = getActiveRouteName(rootState);
             if (initialRoute) {
+              console.log(initialRoute, 'initialRoute')
               routeNameRef.current = initialRoute;
               push(initialRoute);
             }
@@ -167,8 +171,9 @@ export default function App() {
             }
 
             routeNameRef.current = currentRoute;
+            setActiveRoute(routeNameRef.current);
           }}>
-          { isLoggedIn ? <AuthenticatedTabbedNavigator /> : <UnauthenticatedTabbedNavigator />}
+          { isLoggedIn && profilePress ? <AuthenticatedTabbedNavigator /> : <UnauthenticatedTabbedNavigator />}
         </NavigationContainer>
       {/* </SafeAreaView> */}
     </SafeAreaProvider>
