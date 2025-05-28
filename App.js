@@ -10,23 +10,28 @@ import { enableScreens } from 'react-native-screens';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import CartScreen from './screens/HomeTabs/Cart';
-import HomeScreen from './screens/HomeTabs/Home';
-import ProfileScreen from './screens/AuthenticationScreens/Profile1';
+import CartScreen from './screens/UnAuthenticatedTabScreens/Cart';
+import HomeScreen from './screens/UnAuthenticatedTabScreens/Home';
+import ProfileScreen from './screens/AuthenticationScreens/Profile';
 import ProfileIconButton from './components/ProfileButton';
-import SelectedScreen from './screens/HomeTabs/SelectedToys';
+import SelectedScreen from './screens/UnAuthenticatedTabScreens/SelectedToys';
+import EditProfile from './screens/AuthenticatedTabScreens/EditProfile';
+import MyOrders from './screens/AuthenticatedTabScreens/MyOrders';
+import SavedAddresses from './screens/AuthenticatedTabScreens/SavedAddresses';
 import { colors } from './shared/colors';
 import { useNavigationHistory } from './zustand/useNavigationHistory';
+import { useAuthenticationStateSlice } from './zustand/useAuthenticationStateSlice';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
-function TabbedNavigator() {
+
+function UnauthenticatedTabbedNavigator() {
   return (
     <Tab.Navigator
       screenOptions={({ route, navigation }) => ({
         headerShown: true,
         headerRight: () => (<ProfileIconButton onPress={() => {
-          navigation.navigate('Profile', { formType: 'Sign Up' });
+          navigation.navigate('Profile');
         }} changeStyle={false} />),
         headerStyle: {
           backgroundColor: colors.headerAndTabBar[3],
@@ -58,6 +63,44 @@ function TabbedNavigator() {
       <Tab.Screen name="Selected Toys" component={SelectedScreen} />
       <Tab.Screen name="Cart" component={CartScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
+    </Tab.Navigator>
+  );
+}
+
+function AuthenticatedTabbedNavigator() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route, navigation }) => ({
+        headerShown: true,
+        headerStyle: {
+          backgroundColor: colors.headerAndTabBar[3],
+        },
+        headerTintColor: '#444',
+        headerTitleStyle: {
+          color: '#444',
+          fontWeight: 'bold',
+        },
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+          if (route.name === 'Edit Profile') {
+            iconName = focused ? 'create' : 'create-outline'; // person-circle-outline 
+          }
+          else if (route.name === 'My Orders') {
+            iconName = focused ? 'cube' : 'cube-outline'; // receipt-outline
+          } else if (route.name === 'Saved Addresses') {
+            iconName = focused ? 'location' : 'location-outline'; // home-outline
+          }
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarStyle: {
+          backgroundColor: colors.headerAndTabBar[3],
+        },
+        tabBarActiveTintColor: '#333',
+        tabBarInactiveTintColor: '#444',
+      })}>
+      <Tab.Screen name="Edit Profile" component={EditProfile} />
+      <Tab.Screen name="My Orders" component={MyOrders} />
+      <Tab.Screen name="Saved Addresses" component={SavedAddresses} />
     </Tab.Navigator>
   );
 }
@@ -94,6 +137,7 @@ function getActiveRouteName(state) {
 export default function App() {
   const { push, pop, history } = useNavigationHistory();
   const routeNameRef = React.useRef(null);
+  const { isLoggedIn } = useAuthenticationStateSlice();
   enableScreens();
   return (
     <SafeAreaProvider>
@@ -124,7 +168,7 @@ export default function App() {
 
             routeNameRef.current = currentRoute;
           }}>
-          <TabbedNavigator />
+          { isLoggedIn ? <AuthenticatedTabbedNavigator /> : <UnauthenticatedTabbedNavigator />}
         </NavigationContainer>
       {/* </SafeAreaView> */}
     </SafeAreaProvider>

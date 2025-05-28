@@ -2,23 +2,29 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from "@react-navigation/native";
 import { useFocusEffect } from "@react-navigation/native";
 import * as React from 'react';
-import { View, Text, Image, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import ElevatedBox from '../../shared/elevated_box';
 import MyCarousel from "../../shared/carousel";
 import IOSBackButton from "../../components/CustomBackButton";
 import { useNavigationHistory } from "../../zustand/useNavigationHistory";
 import { useFirebaseInit } from "../../zustand/useFirebaseInit";
+import { signOut } from 'firebase/auth';
+import { useAuthenticationStateSlice } from '../../zustand/useAuthenticationStateSlice';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 export default function HomeScreen() {
   const { history, push } = useNavigationHistory();
   const navigation = useNavigation();
 
-  const { firebaseConfig, setApp, setAuth, app } = useFirebaseInit();
+  const { logoutFn } = useAuthenticationStateSlice();
+  const { firebaseConfig, setApp, setAuth, app, auth } = useFirebaseInit();
 
   const [firebaseInitialized, setFirebaseInitialized] = React.useState(false);
 
   const [maxWidth, setMaxWidth] = React.useState(0);
   const [maxHeight, setMaxHeight] = React.useState(0);
+
+  const [err, setErr] = React.useState('');
 
   const updateSize = ({ nativeEvent }) => {
     const { width, height } = nativeEvent.layout;
@@ -45,37 +51,72 @@ export default function HomeScreen() {
     push('Home');
   }, []);
 
-  React.useEffect(() => {
-    async function loadFirebase() {
-      const { initializeApp, getApps, getApp } = await import('firebase/app');
-      let app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-      setApp(app);
-      setFirebaseInitialized(true);
+  async function loadFirebase() {
+    const { initializeApp, getApps, getApp } = await import('firebase/app');
+    let app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    setApp(app);
+    setFirebaseInitialized(true);
+  }
+
+  async function setupFirebaseAuth() {
+    const { initializeAuth, getReactNativePersistence, getAuth } = await import('firebase/auth');
+    const fn = () => {
+      let _auth;
+      try {
+        _auth = getAuth(app); // Try to get existing auth instance
+      } catch (error) {
+        _auth = initializeAuth(app, {
+          persistence: getReactNativePersistence(AsyncStorage),
+        });
+      }
+      setAuth(_auth);
     }
-    loadFirebase(); // Call the async function inside useEffect
+    fn();
+  }
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      const currentUser = auth?.currentUser;
+      if (!currentUser) {
+        logoutFn();
+      }
+    } catch (errMsg) {
+      setErr('Error while signing out: ', errMsg);
+      console.log('Error while signing out: ', errMsg);
+    }
+  };
+
+  React.useEffect(() => {
+    loadFirebase();
   }, []);
 
   React.useEffect(() => {
-    async function getAuth() {
-      const { initializeAuth, getReactNativePersistence, getAuth } = await import('firebase/auth');
-      const fn = () => {
-        let _auth;
-        try {
-          _auth = getAuth(); // Try to get existing auth instance
-        } catch (error) {
-          _auth = initializeAuth(app, {
-            persistence: getReactNativePersistence(AsyncStorage),
-          });
-        }
-        setAuth(_auth);
-      }
-      fn();
-    }
+    setupFirebaseAuth();
     if (app) {
-      getAuth();
+      setupFirebaseAuth();
     }
   }, [app]);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      let unsubscribe = null;
+      async function callable() {
+        const { onAuthStateChanged } = await import('firebase/auth');
+        unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+          if (currentUser) {
+            // const parent = navigation.getParent();
+            // parent.setOptions({
+            //   headerRight: () => (<TouchableOpacity onPress={handleLogout} activeOpacity={0.7}>
+            //     <Ionicons name="log-out-outline" size={24} color="#333" />
+            //   </TouchableOpacity>)
+            // })
+          }
+        });
+      }
+      callable();
+    }, [auth])
+  )
   if (!firebaseInitialized) {
     return (
       <View>
