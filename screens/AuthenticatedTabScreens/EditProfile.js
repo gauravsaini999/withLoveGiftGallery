@@ -1,18 +1,44 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
-import React from 'react'
-import IntraScreenBackButton from '../../components/IntraScreenBackButton';
-import { useNavigationHistory } from '../../zustand/useNavigationHistory';
-import { signOut } from 'firebase/auth';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, StyleSheet, Alert, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { Input, Button, Avatar, Text } from 'react-native-elements';
+import * as ImagePicker from 'expo-image-picker';
+import { useFirebaseInit } from '../../zustand/useFirebaseInit';
 import { useAuthenticationStateSlice } from '../../zustand/useAuthenticationStateSlice';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useFirebaseInit } from '../../zustand/useFirebaseInit';
+import { signOut } from 'firebase/auth';
+import IntraScreenBackButton from '../../components/IntraScreenBackButton';
+import { useNavigationHistory } from '../../zustand/useNavigationHistory';
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { CLOUD_NAME } from '@env';
 
-const EditProfile = () => {
+const EditProfileScreen = () => {
+  const [name, setName] = useState('');
+  const [bio, setBio] = useState('');
+  const [location, setLocation] = useState('');
+  const [image, setImage] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const { auth, user, app, db, setDb } = useFirebaseInit();
   const navigation = useNavigation();
   const { history, push, reset } = useNavigationHistory();
-  const { auth } = useFirebaseInit();
   const { logoutFn } = useAuthenticationStateSlice();
+
+  useEffect(() => {
+    const getDb = async () => {
+      const { getFirestore } = await import('firebase/firestore');
+      try {
+        const db_ = getFirestore(app);
+        if (db_) {
+          setDb(db_)
+        }
+      }
+      catch(err) {
+        console.log("Error while getting db instance: ", err);
+      }
+    }
+    if (Object.keys(app).length) {
+      getDb();
+    }
+  }, [app])
 
   useFocusEffect(
     React.useCallback(() => {
@@ -25,8 +51,8 @@ const EditProfile = () => {
       })
     }, [navigation, history])
   );
-  
-  const handleLogout=async() => {
+
+  const handleLogout = async () => {
     try {
       await signOut(auth);
       const currentUser = auth?.currentUser;
@@ -43,16 +69,200 @@ const EditProfile = () => {
     push('Edit Profile');
   }, []);
 
-  return (
-    <View style={styles.ScreenContainer}>
-      <Text style={styles.TextStyle}>MY EDITING A PROFILE PAGE</Text>
-    </View>
-  )
-}
+  const uploadImageToCloudinary = async (photoUri) => {
+    const data = new FormData();
+    data.append('file', {
+      uri: photoUri,
+      type: 'image/jpeg',
+      name: 'upload.jpg',
+    });
+    data.append('upload_preset', 'user_uploads_unsigned');
 
-export default EditProfile
+    try {
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+        method: 'POST',
+        body: data,
+      });
+
+      const json = await res.json();
+
+      const optimizeUrl = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/q_auto,f_auto/${json.public_id}.jpg`;
+      const autoCropUrl = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/c_fill,g_auto,w_240,h_240/${json.public_id}.jpg`;
+
+      console.log('Upload Success:', json.secure_url);
+      console.log('Optimized URL:', optimizeUrl);
+      console.log('Auto-Cropped URL:', autoCropUrl);
+
+      return autoCropUrl; // return cropped version for avatar
+    } catch (err) {
+      console.error('Upload failed:', err);
+      Alert.alert('Upload failed', err.message);
+      return null;
+    }
+  };
+
+  const ensureMediaLibraryPermission = async () => {
+    const { status: existingStatus } = await ImagePicker.getMediaLibraryPermissionsAsync();
+
+    let finalStatus = existingStatus;
+
+    // If permission not granted, request it now
+    if (existingStatus !== 'granted') {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      finalStatus = status;
+    }
+
+    if (finalStatus !== 'granted') {
+      Alert.alert(
+        'Permission needed',
+        'Please allow access to your photos to upload a profile picture.'
+      );
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleChoosePhoto = async () => {
+    const hasPermission = await ensureMediaLibraryPermission();
+    console.log(hasPermission, 'hasPermission')
+    if (!hasPermission) return;
+
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    console.log(status, 'status of permissions')
+    if (status !== 'granted') {
+      Alert.alert('Permission Denied', 'Camera roll permissions are required!');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      quality: 0.7,
+    });
+    console.log(result, 'result .....')
+    if (!result?.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
+
+  const handleProfileImageUpload = async (photoUri) => {
+    try {
+      const uploadedUrl = await uploadImageToCloudinary(photoUri);
+      console.log('Profile image uploaded and URL saved!');
+      return uploadedUrl;
+    } catch (error) {
+      Alert.alert('Upload failed', 'Could not upload image. Please try again.');
+      return false;
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!name.trim() || !bio.trim() || !location.trim()) {
+      Alert.alert('Incomplete Form', 'Please fill all fields.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const user = auth?.currentUser;
+      if (!user) {
+        Alert.alert('Not Logged In', 'You must be signed in to complete your profile.');
+        return;
+      }
+
+      const uploadedUrl = await handleProfileImageUpload(image);
+      console.log(uploadedUrl, 'uploadedUrl on cloudinary...')
+      const profileData = {
+        name,
+        bio,
+        location,
+        imageUrl: uploadedUrl ? uploadedUrl : '',
+        completedAt: new Date(),
+      };
+
+      console.log('user  from edit profile screen = ', user);
+      const { doc, setDoc } = await import('firebase/firestore');
+      await setDoc(doc(db, 'users', user.uid), profileData);
+      Alert.alert('Success', 'Your profile has been updated!');
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text h3 style={styles.header}>
+        Complete Your Profile
+      </Text>
+
+      <Avatar
+        rounded
+        size="xlarge"
+        icon={{ name: 'user', type: 'font-awesome' }}
+        source={image ? { uri: image } : null}
+        containerStyle={styles.avatar}
+      >
+        <Avatar.Accessory size={30} onPress={handleChoosePhoto} />
+      </Avatar>
+
+      <Input
+        placeholder="Full Name"
+        value={name}
+        onChangeText={setName}
+        leftIcon={{ type: 'feather', name: 'user' }}
+      />
+      <Input
+        placeholder="Short Bio"
+        value={bio}
+        onChangeText={setBio}
+        leftIcon={{ type: 'feather', name: 'info' }}
+      />
+      <Input
+        placeholder="Location"
+        value={location}
+        onChangeText={setLocation}
+        leftIcon={{ type: 'feather', name: 'map-pin' }}
+      />
+
+      {loading ? (
+        <ActivityIndicator size="large" color="#2089dc" />
+      ) : (
+        <Button
+          title="Save Profile"
+          onPress={handleSaveProfile}
+          buttonStyle={styles.button}
+        />
+      )}
+    </ScrollView>
+  );
+};
 
 const styles = StyleSheet.create({
-  ScreenContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  TextStyle: { fontSize: 24, color: '#999' }
-})
+  container: {
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    backgroundColor: '#f7f9fc',
+    flexGrow: 1,
+    alignItems: 'center',
+  },
+  header: {
+    marginBottom: 30,
+    textAlign: 'center',
+  },
+  avatar: {
+    marginBottom: 20,
+    backgroundColor: '#ddd',
+  },
+  button: {
+    backgroundColor: '#2089dc',
+    paddingHorizontal: 50,
+    borderRadius: 8,
+    marginTop: 20,
+  },
+});
+
+export default EditProfileScreen;

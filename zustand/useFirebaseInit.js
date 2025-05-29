@@ -23,6 +23,7 @@ export const useFirebaseInit = create((set, get) => ({
     },
     app: {},
     auth: {},
+    db: {},
     setApp: (app) => set((state) => {
         return {
             ...state,
@@ -33,6 +34,12 @@ export const useFirebaseInit = create((set, get) => ({
         return {
             ...state,
             auth
+        }
+    }),
+    setDb: (db) => set((state) => {
+        return {
+            ...state,
+            db
         }
     })
 }))
