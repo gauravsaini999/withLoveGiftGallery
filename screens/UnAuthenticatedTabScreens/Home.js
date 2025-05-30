@@ -16,7 +16,7 @@ export default function HomeScreen() {
   const navigation = useNavigation();
 
   const { logoutFn, loginFn, isLoggedIn } = useAuthenticationStateSlice();
-  const { firebaseConfig, setApp, setAuth, app, auth } = useFirebaseInit();
+  const { firebaseConfig, setApp, setAuth, app, auth, setDb } = useFirebaseInit();
 
   const [firebaseInitialized, setFirebaseInitialized] = React.useState(false);
 
@@ -94,6 +94,24 @@ export default function HomeScreen() {
       called();
     }
   }, [auth])
+
+  React.useEffect(() => {
+    const getDb = async () => {
+      const { getFirestore } = await import('firebase/firestore');
+      try {
+        const db_ = getFirestore(app);
+        if (db_) {
+          setDb(db_)
+        }
+      }
+      catch (err) {
+        console.log("Error while getting db instance: ", err);
+      }
+    }
+    if (Object.keys(app).length && Object.keys(auth).length) {
+      getDb();
+    }
+  }, [app, auth])
 
   const handleLogout = async () => {
     try {

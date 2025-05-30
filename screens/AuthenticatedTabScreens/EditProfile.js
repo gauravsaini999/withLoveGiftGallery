@@ -47,7 +47,7 @@ const EditProfileScreen = () => {
   const [showDatePicker, setShowDatePicker] = useState(false); // show date time picker
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { auth, app, db, setDb } = useFirebaseInit();
+  const { auth, db } = useFirebaseInit();
   const navigation = useNavigation();
   const { history, push, reset } = useNavigationHistory();
   const { userObj, logoutFn } = useAuthenticationStateSlice();
@@ -60,24 +60,6 @@ const EditProfileScreen = () => {
       setBday(selectedDate);
     }
   };
-
-  useEffect(() => {
-    const getDb = async () => {
-      const { getFirestore } = await import('firebase/firestore');
-      try {
-        const db_ = getFirestore(app);
-        if (db_) {
-          setDb(db_)
-        }
-      }
-      catch (err) {
-        console.log("Error while getting db instance: ", err);
-      }
-    }
-    if (Object.keys(app).length) {
-      getDb();
-    }
-  }, [app])
 
   useFocusEffect(
     React.useCallback(() => {

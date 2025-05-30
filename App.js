@@ -15,9 +15,9 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import CartScreen from './screens/UnAuthenticatedTabScreens/Cart';
 import HomeScreen from './screens/UnAuthenticatedTabScreens/Home';
 import ProfileScreen from './screens/AuthenticationScreens/Profile';
+import ProfileScreenDecider from './screens/AuthenticatedTabScreens/ProfileDecider';
 import ProfileIconButton from './components/ProfileButton';
 import SelectedScreen from './screens/UnAuthenticatedTabScreens/SelectedToys';
-import EditProfile from './screens/AuthenticatedTabScreens/EditProfile';
 import MyOrders from './screens/AuthenticatedTabScreens/MyOrders';
 import SavedAddresses from './screens/AuthenticatedTabScreens/SavedAddresses';
 import { colors } from './shared/colors';
@@ -102,7 +102,7 @@ function AuthenticatedTabbedNavigator() {
         tabBarActiveTintColor: '#333',
         tabBarInactiveTintColor: '#444',
       })}>
-      <Tab.Screen name="Edit Profile" component={EditProfile} />
+      <Tab.Screen name="Edit Profile" component={ProfileScreenDecider} />
       <Tab.Screen name="My Orders" component={MyOrders} />
       <Tab.Screen name="Saved Addresses" component={SavedAddresses} />
     </Tab.Navigator>
