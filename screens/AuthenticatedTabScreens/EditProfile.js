@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, Alert, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { Input, Button, Avatar, Text } from 'react-native-elements';
+import { Modal, TouchableWithoutFeedback, ScrollView, StyleSheet, Alert, ActivityIndicator, TouchableOpacity, View, Platform } from 'react-native';
+import { Input, Button, Avatar, Text, ButtonGroup } from 'react-native-elements';
 import * as ImagePicker from 'expo-image-picker';
 import { useFirebaseInit } from '../../zustand/useFirebaseInit';
 import { useAuthenticationStateSlice } from '../../zustand/useAuthenticationStateSlice';
@@ -10,17 +10,56 @@ import IntraScreenBackButton from '../../components/IntraScreenBackButton';
 import { useNavigationHistory } from '../../zustand/useNavigationHistory';
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { CLOUD_NAME } from '@env';
+import DateTimePicker from '@react-native-community/datetimepicker';
+
+const DateTimePickerCustomized = ({ showDatePicker, setShowDatePicker, bday, onChange }) => {
+  return (
+    <Modal
+      transparent={true}
+      visible={showDatePicker}
+      animationType="fade"
+      onRequestClose={() => setShowDatePicker(false)}
+    >
+      <TouchableWithoutFeedback onPress={() => setShowDatePicker(false)}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' }}>
+          <TouchableWithoutFeedback>
+            <View style={{ backgroundColor: 'white', borderRadius: 10, padding: 20 }}>
+              <DateTimePicker
+                value={bday}
+                mode="date"
+                display="spinner"
+                maximumDate={new Date()}
+                onChange={onChange}
+              />
+            </View>
+          </TouchableWithoutFeedback>
+        </View>
+      </TouchableWithoutFeedback>
+    </Modal>
+  )
+};
 
 const EditProfileScreen = () => {
   const [name, setName] = useState('');
-  const [bio, setBio] = useState('');
+  const [email, setEmail] = useState('');
   const [location, setLocation] = useState('');
+  const [bday, setBday] = useState(new Date()); // default birthday
+  const [showDatePicker, setShowDatePicker] = useState(false); // show date time picker
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { auth, user, app, db, setDb } = useFirebaseInit();
+  const { auth, app, db, setDb } = useFirebaseInit();
   const navigation = useNavigation();
   const { history, push, reset } = useNavigationHistory();
-  const { logoutFn } = useAuthenticationStateSlice();
+  const { userObj, logoutFn } = useAuthenticationStateSlice();
+  const [selectedIndex, setSelectedIndex] = useState(null); // for gender selection radio boxes group
+  const genderOptions = ['Male', 'Female', 'Other']; // options for gender selection
+
+  const onChange = (event, selectedDate) => {
+    setShowDatePicker(Platform.OS === 'ios'); // On iOS, keep picker open until user closes
+    if (selectedDate) {
+      setBday(selectedDate);
+    }
+  };
 
   useEffect(() => {
     const getDb = async () => {
@@ -31,7 +70,7 @@ const EditProfileScreen = () => {
           setDb(db_)
         }
       }
-      catch(err) {
+      catch (err) {
         console.log("Error while getting db instance: ", err);
       }
     }
@@ -158,31 +197,33 @@ const EditProfileScreen = () => {
   };
 
   const handleSaveProfile = async () => {
-    if (!name.trim() || !bio.trim() || !location.trim()) {
-      Alert.alert('Incomplete Form', 'Please fill all fields.');
-      return;
-    }
-
     try {
+      const uploadedUrl = await handleProfileImageUpload(image);
+      const profileData = {
+        name,
+        email,
+        location,
+        birthday: bday.toISOString(),
+        gender: genderOptions[selectedIndex],
+        imageUrl: uploadedUrl ? uploadedUrl : '',
+        completedAt: new Date(),
+      };
+      if (!uploadedUrl.toString().trim() ||
+        !name.trim() ||
+        !email.trim() ||
+        !location.trim() ||
+        !bday.toISOString().trim() ||
+        selectedIndex === null ||
+        !genderOptions[selectedIndex]) {
+        Alert.alert('Incomplete Form', 'Please fill all fields.');
+        return;
+      }
       setLoading(true);
-
-      const user = auth?.currentUser;
+      const user = userObj; //auth?.currentUser;
       if (!user) {
         Alert.alert('Not Logged In', 'You must be signed in to complete your profile.');
         return;
       }
-
-      const uploadedUrl = await handleProfileImageUpload(image);
-      console.log(uploadedUrl, 'uploadedUrl on cloudinary...')
-      const profileData = {
-        name,
-        bio,
-        location,
-        imageUrl: uploadedUrl ? uploadedUrl : '',
-        completedAt: new Date(),
-      };
-
-      console.log('user  from edit profile screen = ', user);
       const { doc, setDoc } = await import('firebase/firestore');
       await setDoc(doc(db, 'users', user.uid), profileData);
       Alert.alert('Success', 'Your profile has been updated!');
@@ -196,7 +237,7 @@ const EditProfileScreen = () => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text h3 style={styles.header}>
-        Complete Your Profile
+        Profile Details
       </Text>
 
       <Avatar
@@ -216,10 +257,10 @@ const EditProfileScreen = () => {
         leftIcon={{ type: 'feather', name: 'user' }}
       />
       <Input
-        placeholder="Short Bio"
-        value={bio}
-        onChangeText={setBio}
-        leftIcon={{ type: 'feather', name: 'info' }}
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        leftIcon={{ type: 'feather', name: 'mail' }}
       />
       <Input
         placeholder="Location"
@@ -227,7 +268,29 @@ const EditProfileScreen = () => {
         onChangeText={setLocation}
         leftIcon={{ type: 'feather', name: 'map-pin' }}
       />
-
+      <View style={styles.container_}>
+        <Text style={styles.label}>Birthday</Text>
+        <Button
+          title={bday.toDateString()}
+          type="outline"
+          onPress={() => setShowDatePicker(true)}
+          buttonStyle={styles.button_}
+          titleStyle={styles.buttonTitle}
+        />
+        <DateTimePickerCustomized showDatePicker={showDatePicker} setShowDatePicker={setShowDatePicker} bday={bday} onChange={onChange} />
+        <Text style={[styles.label, { marginTop: 30 }]}>Gender</Text>
+        <ButtonGroup
+          onPress={setSelectedIndex}
+          selectedIndex={selectedIndex}
+          buttons={genderOptions}
+          containerStyle={styles.buttonGroup}
+          selectedButtonStyle={styles.selectedButton}
+          textStyle={styles.buttonGroupText}
+        />
+        <Text style={styles.selectedText}>
+          Selected: {selectedIndex !== null ? genderOptions[selectedIndex] : 'None'}
+        </Text>
+      </View>
       {loading ? (
         <ActivityIndicator size="large" color="#2089dc" />
       ) : (
@@ -262,6 +325,47 @@ const styles = StyleSheet.create({
     paddingHorizontal: 50,
     borderRadius: 8,
     marginTop: 20,
+  },
+  container_: {
+    marginVertical: 20,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 15,
+  },
+  label: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginBottom: 8,
+    color: '#333',
+  },
+  button_: {
+    borderColor: '#2089dc',
+    borderRadius: 8,
+    paddingVertical: 12,
+  },
+  buttonTitle: {
+    color: '#2089dc',
+    fontSize: 16,
+  },
+  datePicker: {
+    width: '100%',
+    marginTop: 10,
+  },
+  buttonGroup: {
+    borderRadius: 8,
+    marginLeft: 0,
+    width: '100%',
+  },
+  selectedButton: {
+    backgroundColor: '#2089dc',
+  },
+  buttonGroupText: {
+    fontSize: 15,
+    color: '#2089dc',
+  },
+  selectedText: {
+    marginTop: 10,
+    fontSize: 14,
+    color: '#555',
   },
 });
 

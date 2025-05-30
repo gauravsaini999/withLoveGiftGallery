@@ -40,6 +40,7 @@ const ProfileScreen = () => {
       })
     }
   }
+
   React.useEffect(() => {
     decider();
   }, [enableSignUp])
@@ -49,7 +50,7 @@ const ProfileScreen = () => {
   const autofillThreshold = 50; // milliseconds
   const { history } = useNavigationHistory();
   const navigation = useNavigation();
-  const { auth } = useFirebaseInit();
+  const { auth, user, setUser } = useFirebaseInit();
   const { loginFn, isLoggedIn } = useAuthenticationStateSlice();
 
   React.useEffect(() => {
