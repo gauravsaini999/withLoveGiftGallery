@@ -1,6 +1,5 @@
 import React, { useState, useEffect, startTransition } from 'react';
 import { Modal, TouchableWithoutFeedback, ScrollView, StyleSheet, Alert, TouchableOpacity, View, Platform } from 'react-native';
-import { Input, Button, Avatar, Text, ButtonGroup } from 'react-native-elements';
 import * as ImagePicker from 'expo-image-picker';
 import { useFirebaseInit } from '../../zustand/useFirebaseInit';
 import { useAuthenticationStateSlice } from '../../zustand/useAuthenticationStateSlice';
@@ -12,6 +11,19 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { CLOUD_NAME } from '@env';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import ModalLoader from '../../components/ModalLoader';
+import * as Location from 'expo-location';
+import {
+  Avatar,
+  Button,
+  Text,
+  TextInput,
+  RadioButton,
+  Divider,
+  Surface,
+  useTheme,
+  List,
+  IconButton
+} from 'react-native-paper';
 
 const fakeApiCall = () => new Promise((resolve) => setTimeout(resolve, 500));
 
@@ -43,13 +55,16 @@ const DateTimePickerCustomized = ({ showDatePicker, setShowDatePicker, bday, onC
 };
 
 const UpdatedProfile = ({ profile }) => {
+  const theme = useTheme();
   const genderOptions = ['Male', 'Female', 'Other']; // options for gender selection
-  const [name, setName] = useState(profile.name || '');
-  const [email, setEmail] = useState(profile.email || '');
-  const [location, setLocation] = useState(profile.location || '');
-  const [bday, setBday] = useState(profile.birthday ? new Date(profile.birthday) : new Date());
-  const [selectedIndex, setSelectedIndex] = useState(profile.gender ? genderOptions.indexOf(profile.gender) : null);
-  const [image, setImage] = useState(profile.imageUrl || '');
+  const [name, setName] = useState(profile?.name || '');
+  const [email, setEmail] = useState(profile?.email || '');
+  const [location, setLocation] = useState(profile?.location || '');
+  const [coords, setCoords] = useState(null);
+  const [detectingLocation, setDetectingLocation] = useState(false);
+  const [bday, setBday] = useState(profile?.birthday ? new Date(profile?.birthday) : new Date());
+  const [selectedIndex, setSelectedIndex] = useState(profile?.gender ? genderOptions.indexOf(profile?.gender) : null);
+  const [image, setImage] = useState(profile?.imageUrl || '');
   const [showComponentTransitioning, setShowComponentTransitioning] = useState(false);
 
   const [showDatePicker, setShowDatePicker] = useState(false); // show date time picker
@@ -58,7 +73,40 @@ const UpdatedProfile = ({ profile }) => {
   const navigation = useNavigation();
   const { history, push, reset } = useNavigationHistory();
   const { userObj: user, logoutFn } = useAuthenticationStateSlice();
-  const [isEditing, setIsEditing] = useState(false); // Edit Mode On / Off
+  const [isEditing, setIsEditing] = useState(false); // 
+
+  const handleDetectLocation = async () => {
+    try {
+      setDetectingLocation(true);
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Permission to access location was denied');
+        setDetectingLocation(false);
+        return;
+      }
+
+      const position = await Location.getCurrentPositionAsync({});
+      const [geo] = await Location.reverseGeocodeAsync(position.coords);
+
+      if (geo) {
+        const city = geo.city || geo.subregion || '';
+        const country = geo.country || '';
+        setLocation(`${city}, ${country}`);
+      } else {
+        alert('Unable to detect location');
+      }
+    } catch (err) {
+      alert('Error detecting location');
+    } finally {
+      setDetectingLocation(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!location) {
+      handleDetectLocation();
+    }
+  }, []);
 
   const onChange = (event, selectedDate) => {
     setShowDatePicker(Platform.OS === 'ios'); // On iOS, keep picker open until user closes
@@ -199,6 +247,12 @@ const UpdatedProfile = ({ profile }) => {
     }
   }, [isEditing]);
 
+  useEffect(() => {
+    if (!profile || !profile?.name || !profile?.email) {
+      setIsEditing(true);
+    }
+  }, [profile]);
+
   const handleSaveProfile = async () => {
     startTransition(() => {
       setLoading(true);
@@ -240,63 +294,98 @@ const UpdatedProfile = ({ profile }) => {
     }
   };
 
+  const gender = selectedIndex !== null ? genderOptions[selectedIndex] : 'Not specified';
+
+  const genderIcon = (() => {
+    switch (gender.toLowerCase()) {
+      case 'male':
+        return 'gender-male';
+      case 'female':
+        return 'gender-female';
+      case 'non-binary':
+        return 'gender-non-binary';
+      default:
+        return 'gender-male-female';
+    }
+  })();
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <ModalLoader visible={showComponentTransitioning} />
-      <Text h3 style={styles.header}>Profile Details</Text>
-      <Avatar
-        rounded
-        size="xlarge"
-        icon={{ name: 'user', type: 'font-awesome' }}
-        source={image ? { uri: image } : null}
-        containerStyle={styles.avatar}
-      >
-        {isEditing && <Avatar.Accessory size={30} onPress={handleChoosePhoto} />}
-      </Avatar>
 
-      {isEditing ? (
-        <>
-          <Input
-            placeholder="Full Name"
-            value={name}
-            onChangeText={setName}
-            leftIcon={{ type: 'feather', name: 'user' }}
-          />
-          <Input
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            leftIcon={{ type: 'feather', name: 'mail' }}
-          />
-          <Input
-            placeholder="Location"
-            value={location}
-            onChangeText={setLocation}
-            leftIcon={{ type: 'feather', name: 'map-pin' }}
-          />
-        </>
-      ) : (
-        <View style={styles.container_}>
-          <Text style={[styles.label]}>Full Name</Text>
-          <Text>{name}</Text>
-          <Text style={[styles.label, { marginTop: 20 }]}>Email</Text>
-          <Text>{email}</Text>
-          <Text style={[styles.label, { marginTop: 20 }]}>Location</Text>
-          <Text>{location}</Text>
-        </View>
+      <Text variant="headlineMedium" style={styles.header}>Profile Details</Text>
+
+      <Avatar.Image
+        size={120}
+        source={image ? { uri: image } : require('../../assets/default-avatar.png')}
+        style={styles.avatar}
+      />
+      {isEditing && (
+        <Button mode="outlined" onPress={handleChoosePhoto} style={styles.photoButton}>
+          Change Photo
+        </Button>
       )}
 
-      <View style={styles.container_}>
-        <Text style={styles.label}>Birthday</Text>
+      <Surface style={styles.infoCard}>
         {isEditing ? (
           <>
-            <Button
-              title={bday.toDateString()}
-              type="outline"
-              onPress={() => setShowDatePicker(true)}
-              buttonStyle={styles.button_}
-              titleStyle={styles.buttonTitle}
+            <TextInput label="Full Name" value={name} onChangeText={setName} mode="outlined" />
+            <TextInput label="Email" value={email} onChangeText={setEmail} mode="outlined" keyboardType="email-address" />
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <TextInput
+                label="Location"
+                value={location}
+                onChangeText={setLocation}
+                mode="outlined"
+                left={<TextInput.Icon icon="map-marker" />}
+                style={{ flex: 1 }}
+              />
+              <IconButton
+                icon="crosshairs-gps"
+                onPress={handleDetectLocation}
+                disabled={detectingLocation}
+                loading={detectingLocation}
+                accessibilityLabel="Detect Location"
+              />
+            </View>
+          </>
+        ) : (
+          <>
+            <Text variant="titleSmall" style={styles.sectionTitle}>Personal Info</Text>
+            <List.Item
+              title={name}
+              description="Full Name"
+              left={props => <List.Icon {...props} icon="account" />}
             />
+            <List.Item
+              title={email}
+              description="Email"
+              left={props => <List.Icon {...props} icon="email" />}
+            />
+            <List.Item
+              title={location}
+              description="Location"
+              left={props => <List.Icon {...props} icon="map-marker" />}
+            />
+          </>
+        )}
+      </Surface>
+
+      <Surface style={styles.infoCard}>
+        <List.Item
+          title={bday.toDateString()}
+          description="Birthday"
+          left={props => <List.Icon {...props} icon="cake" />}
+        />
+        {isEditing && (
+          <>
+            <Button
+              mode="outlined"
+              onPress={() => setShowDatePicker(true)}
+              style={styles.dateButton}
+            >
+              Choose Birthday
+            </Button>
             <DateTimePickerCustomized
               showDatePicker={showDatePicker}
               setShowDatePicker={setShowDatePicker}
@@ -304,126 +393,310 @@ const UpdatedProfile = ({ profile }) => {
               onChange={onChange}
             />
           </>
-        ) : (
-          <Text>{bday.toDateString()}</Text>
         )}
 
-        <Text style={[styles.label, { marginTop: 20 }]}>Gender</Text>
-        {isEditing ? (
-          <>
-            <ButtonGroup
-              onPress={setSelectedIndex}
-              selectedIndex={selectedIndex}
-              buttons={genderOptions}
-              containerStyle={styles.buttonGroup}
-              selectedButtonStyle={styles.selectedButton}
-              textStyle={styles.buttonGroupText}
-            />
-            <Text style={styles.selectedText}>
-              Selected: {selectedIndex !== null ? genderOptions[selectedIndex] : 'None'}
-            </Text>
-          </>
-        ) : (
-          <Text>{selectedIndex !== null ? genderOptions[selectedIndex] : 'None'}</Text>
-        )}
-      </View>
-
-      <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '100%', alignItems: 'center' }}>
-        <Button
-          title={isEditing ? 'Cancel' : 'Edit Profile'}
-          onPress={() => setIsEditing(prev => !prev)}
-          buttonStyle={styles.button}
+        <Divider style={{ marginVertical: 10 }} />
+        <List.Item
+          title={genderOptions[selectedIndex] ?? 'Not specified'}
+          description="Gender"
+          left={props => <List.Icon {...props} icon={genderIcon} />}
         />
 
-        {isEditing &&
+        {isEditing && (
+          <RadioButton.Group
+            onValueChange={(val) => setSelectedIndex(genderOptions.indexOf(val))}
+            value={genderOptions[selectedIndex] || ''}
+          >
+            {genderOptions.map((option, idx) => (
+              <RadioButton.Item key={idx} label={option} value={option} />
+            ))}
+          </RadioButton.Group>
+        )}
+      </Surface>
+
+      <View style={styles.buttonContainer}>
+        <Button
+          mode="contained"
+          onPress={() => setIsEditing(prev => !prev)}
+          style={styles.actionButton}
+        >
+          {isEditing ? 'Cancel' : 'Edit Profile'}
+        </Button>
+        {isEditing && (
           <>
             <ModalLoader visible={loading} />
             <Button
-              title="Save Profile"
+              mode="contained"
               onPress={handleSaveProfile}
-              buttonStyle={styles.button}
               disabled={loading}
-              disabledStyle={{ opacity: 0.5 }}
-            />
+              style={styles.actionButton}
+            >
+              Save Profile
+            </Button>
           </>
-        }
+        )}
       </View>
     </ScrollView>
-  )
-}
+  );
+};
 
-export default UpdatedProfile
+const LabelValue = ({ label, value }) => (
+  <View style={{ marginBottom: 15 }}>
+    <Text style={styles.label}>{label}</Text>
+    <Text>{value}</Text>
+  </View>
+);
 
 const styles = StyleSheet.create({
-  TextContainer: {
-    paddingVertical: 40,
-    paddingHorizontal: 20,
-    alignSelf: 'flex-start',
-    backgroundColor: '#f7f9fc',
-    flexGrow: 1,
-    paddingHorizontal: 15,
-  },
   container: {
-    paddingVertical: 40,
-    paddingHorizontal: 20,
+    padding: 20,
     backgroundColor: '#f7f9fc',
     flexGrow: 1,
-    alignItems: 'flex-start',
   },
   header: {
-    marginBottom: 30,
-    alignSelf: 'center'
+    alignSelf: 'center',
+    marginBottom: 20,
   },
   avatar: {
+    alignSelf: 'center',
+    backgroundColor: '#eee',
+    marginBottom: 10,
+  },
+  photoButton: {
+    alignSelf: 'center',
     marginBottom: 20,
-    backgroundColor: '#ddd',
-    alignSelf: 'center'
   },
-  button: {
-    backgroundColor: '#2089dc',
-    paddingHorizontal: 50,
-    borderRadius: 8,
-    marginTop: 20,
-  },
-  container_: {
-    marginVertical: 10,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 15,
+  section: {
+    padding: 20,
+    borderRadius: 10,
+    elevation: 1,
+    backgroundColor: 'white',
+    marginBottom: 20,
   },
   label: {
     fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 8,
-    color: '#333',
-  },
-  button_: {
-    borderColor: '#2089dc',
-    borderRadius: 8,
-    paddingVertical: 12,
-  },
-  buttonTitle: {
-    color: '#2089dc',
-    fontSize: 16,
-  },
-  datePicker: {
-    width: '100%',
-    marginTop: 10,
-  },
-  buttonGroup: {
-    borderRadius: 8,
-    marginLeft: 0,
-    width: '100%',
-  },
-  selectedButton: {
-    backgroundColor: '#2089dc',
-  },
-  buttonGroupText: {
-    fontSize: 15,
-    color: '#2089dc',
-  },
-  selectedText: {
-    marginTop: 10,
     fontSize: 14,
     color: '#555',
   },
+  dateButton: {
+    marginTop: 10,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    marginTop: 20,
+  },
+  actionButton: {
+    flex: 1,
+    marginHorizontal: 5,
+  },
+  infoCard: {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    elevation: 3,
+    marginBottom: 20,
+  },
+
+  sectionTitle: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    color: '#2089dc',
+    marginBottom: 10,
+  },
 });
+
+export default UpdatedProfile;
+
+
+
+
+
+
+//     <ScrollView contentContainerStyle={styles.container}>
+//       <ModalLoader visible={showComponentTransitioning} />
+//       <Text h3 style={styles.header}>Profile Details</Text>
+//       <Avatar
+//         rounded
+//         size="xlarge"
+//         icon={{ name: 'user', type: 'font-awesome' }}
+//         source={image ? { uri: image } : null}
+//         containerStyle={styles.avatar}
+//       >
+//         {isEditing && <Avatar.Accessory size={30} onPress={handleChoosePhoto} />}
+//       </Avatar>
+
+//       {isEditing ? (
+//         <>
+//           <Input
+//             placeholder="Full Name"
+//             value={name}
+//             onChangeText={setName}
+//             leftIcon={{ type: 'feather', name: 'user' }}
+//           />
+//           <Input
+//             placeholder="Email"
+//             value={email}
+//             onChangeText={setEmail}
+//             leftIcon={{ type: 'feather', name: 'mail' }}
+//           />
+//           <Input
+//             placeholder="Location"
+//             value={location}
+//             onChangeText={setLocation}
+//             leftIcon={{ type: 'feather', name: 'map-pin' }}
+//           />
+//         </>
+//       ) : (
+//         <View style={styles.container_}>
+//           <Text style={[styles.label]}>Full Name</Text>
+//           <Text>{name}</Text>
+//           <Text style={[styles.label, { marginTop: 20 }]}>Email</Text>
+//           <Text>{email}</Text>
+//           <Text style={[styles.label, { marginTop: 20 }]}>Location</Text>
+//           <Text>{location}</Text>
+//         </View>
+//       )}
+
+//       <View style={styles.container_}>
+//         <Text style={styles.label}>Birthday</Text>
+//         {isEditing ? (
+//           <>
+//             <Button
+//               title={bday.toDateString()}
+//               type="outline"
+//               onPress={() => setShowDatePicker(true)}
+//               buttonStyle={styles.button_}
+//               titleStyle={styles.buttonTitle}
+//             />
+//             <DateTimePickerCustomized
+//               showDatePicker={showDatePicker}
+//               setShowDatePicker={setShowDatePicker}
+//               bday={bday}
+//               onChange={onChange}
+//             />
+//           </>
+//         ) : (
+//           <Text>{bday.toDateString()}</Text>
+//         )}
+
+//         <Text style={[styles.label, { marginTop: 20 }]}>Gender</Text>
+//         {isEditing ? (
+//           <>
+//             <ButtonGroup
+//               onPress={setSelectedIndex}
+//               selectedIndex={selectedIndex}
+//               buttons={genderOptions}
+//               containerStyle={styles.buttonGroup}
+//               selectedButtonStyle={styles.selectedButton}
+//               textStyle={styles.buttonGroupText}
+//             />
+//             <Text style={styles.selectedText}>
+//               Selected: {selectedIndex !== null ? genderOptions[selectedIndex] : 'None'}
+//             </Text>
+//           </>
+//         ) : (
+//           <Text>{selectedIndex !== null ? genderOptions[selectedIndex] : 'None'}</Text>
+//         )}
+//       </View>
+
+//       <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '100%', alignItems: 'center' }}>
+//         <Button
+//           title={isEditing ? 'Cancel' : 'Edit Profile'}
+//           onPress={() => setIsEditing(prev => !prev)}
+//           buttonStyle={styles.button}
+//         />
+
+//         {isEditing &&
+//           <>
+//             <ModalLoader visible={loading} />
+//             <Button
+//               title="Save Profile"
+//               onPress={handleSaveProfile}
+//               buttonStyle={styles.button}
+//               disabled={loading}
+//               disabledStyle={{ opacity: 0.5 }}
+//             />
+//           </>
+//         }
+//       </View>
+//     </ScrollView>
+//   )
+// }
+
+// export default UpdatedProfile
+
+// const styles = StyleSheet.create({
+//   TextContainer: {
+//     paddingVertical: 40,
+//     paddingHorizontal: 20,
+//     alignSelf: 'flex-start',
+//     backgroundColor: '#f7f9fc',
+//     flexGrow: 1,
+//     paddingHorizontal: 15,
+//   },
+//   container: {
+//     paddingVertical: 40,
+//     paddingHorizontal: 20,
+//     backgroundColor: '#f7f9fc',
+//     flexGrow: 1,
+//     alignItems: 'flex-start',
+//   },
+//   header: {
+//     marginBottom: 30,
+//     alignSelf: 'center'
+//   },
+//   avatar: {
+//     marginBottom: 20,
+//     backgroundColor: '#ddd',
+//     alignSelf: 'center'
+//   },
+//   button: {
+//     backgroundColor: '#2089dc',
+//     paddingHorizontal: 50,
+//     borderRadius: 8,
+//     marginTop: 20,
+//   },
+//   container_: {
+//     marginVertical: 10,
+//     alignSelf: 'flex-start',
+//     paddingHorizontal: 15,
+//   },
+//   label: {
+//     fontWeight: 'bold',
+//     fontSize: 16,
+//     marginBottom: 8,
+//     color: '#333',
+//   },
+//   button_: {
+//     borderColor: '#2089dc',
+//     borderRadius: 8,
+//     paddingVertical: 12,
+//   },
+//   buttonTitle: {
+//     color: '#2089dc',
+//     fontSize: 16,
+//   },
+//   datePicker: {
+//     width: '100%',
+//     marginTop: 10,
+//   },
+//   buttonGroup: {
+//     borderRadius: 8,
+//     marginLeft: 0,
+//     width: '100%',
+//   },
+//   selectedButton: {
+//     backgroundColor: '#2089dc',
+//   },
+//   buttonGroupText: {
+//     fontSize: 15,
+//     color: '#2089dc',
+//   },
+//   selectedText: {
+//     marginTop: 10,
+//     fontSize: 14,
+//     color: '#555',
+//   },
+// });

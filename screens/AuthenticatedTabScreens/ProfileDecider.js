@@ -41,10 +41,8 @@ const ProfileScreenDecider = () => {
   if (loading) {
     return <ModalLoader visible={loading} />
   }
-
-  if (!profile || !profile.name || !profile.email)
-    return <EnterProfileDetailsForm />;
-  else return <ViewOrEditProfileForm profile={profile} />
+  
+  return <ViewOrEditProfileForm profile={profile} />
 
 }
 

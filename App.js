@@ -23,6 +23,7 @@ import SavedAddresses from './screens/AuthenticatedTabScreens/SavedAddresses';
 import { colors } from './shared/colors';
 import { useNavigationHistory } from './zustand/useNavigationHistory';
 import { useAuthenticationStateSlice } from './zustand/useAuthenticationStateSlice';
+import { Provider as PaperProvider } from 'react-native-paper';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -148,38 +149,40 @@ export default function App() {
   //   console.log('Persisted raw JSON:', value);
   // });
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle="dark-content" />
-      {/* <SafeAreaView style={{ flex: 1, backgroundColor: '#EEE' }}> */}
-      <NavigationContainer
-        onReady={(nav) => {
-          const rootState = nav?.getRootState?.();
-          if (!rootState) return;
+    <PaperProvider>
+      <SafeAreaProvider>
+        <StatusBar barStyle="dark-content" />
+        {/* <SafeAreaView style={{ flex: 1, backgroundColor: '#EEE' }}> */}
+        <NavigationContainer
+          onReady={(nav) => {
+            const rootState = nav?.getRootState?.();
+            if (!rootState) return;
 
-          const initialRoute = getActiveRouteName(rootState);
-          if (initialRoute) {
-            routeNameRef.current = initialRoute;
-            push(initialRoute);
-          }
-        }}
-        onStateChange={(state) => {
-          const currentRoute = getActiveRouteName(state);
-          const previousRoute = routeNameRef.current;
+            const initialRoute = getActiveRouteName(rootState);
+            if (initialRoute) {
+              routeNameRef.current = initialRoute;
+              push(initialRoute);
+            }
+          }}
+          onStateChange={(state) => {
+            const currentRoute = getActiveRouteName(state);
+            const previousRoute = routeNameRef.current;
 
-          if (!currentRoute || currentRoute === previousRoute) return;
+            if (!currentRoute || currentRoute === previousRoute) return;
 
-          if (history.length >= 2 && history[history.length - 2] === currentRoute) {
-            pop(); // went back
-          } else {
-            push(currentRoute); // went forward
-          }
+            if (history.length >= 2 && history[history.length - 2] === currentRoute) {
+              pop(); // went back
+            } else {
+              push(currentRoute); // went forward
+            }
 
-          routeNameRef.current = currentRoute;
-          setActiveRoute(routeNameRef.current);
-        }}>
-        {isLoggedIn && profilePress ? <AuthenticatedTabbedNavigator /> : <UnauthenticatedTabbedNavigator />}
-      </NavigationContainer>
-      {/* </SafeAreaView> */}
-    </SafeAreaProvider>
+            routeNameRef.current = currentRoute;
+            setActiveRoute(routeNameRef.current);
+          }}>
+          {isLoggedIn && profilePress ? <AuthenticatedTabbedNavigator /> : <UnauthenticatedTabbedNavigator />}
+        </NavigationContainer>
+        {/* </SafeAreaView> */}
+      </SafeAreaProvider>
+    </PaperProvider>
   );
 }
