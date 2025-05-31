@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, TouchableWithoutFeedback, ScrollView, StyleSheet, Alert, ActivityIndicator, TouchableOpacity, View, Platform } from 'react-native';
+import React, { useState, useEffect, startTransition } from 'react';
+import { Modal, TouchableWithoutFeedback, ScrollView, StyleSheet, Alert, TouchableOpacity, View, Platform } from 'react-native';
 import { Input, Button, Avatar, Text, ButtonGroup } from 'react-native-elements';
 import * as ImagePicker from 'expo-image-picker';
 import { useFirebaseInit } from '../../zustand/useFirebaseInit';
@@ -11,6 +11,9 @@ import { useNavigationHistory } from '../../zustand/useNavigationHistory';
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { CLOUD_NAME } from '@env';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import ModalLoader from '../../components/ModalLoader';
+
+const fakeApiCall = () => new Promise((resolve) => setTimeout(resolve, 500));
 
 const DateTimePickerCustomized = ({ showDatePicker, setShowDatePicker, bday, onChange }) => {
   return (
@@ -47,10 +50,11 @@ const UpdatedProfile = ({ profile }) => {
   const [bday, setBday] = useState(profile.birthday ? new Date(profile.birthday) : new Date());
   const [selectedIndex, setSelectedIndex] = useState(profile.gender ? genderOptions.indexOf(profile.gender) : null);
   const [image, setImage] = useState(profile.imageUrl || '');
+  const [showComponentTransitioning, setShowComponentTransitioning] = useState(false);
 
   const [showDatePicker, setShowDatePicker] = useState(false); // show date time picker
   const [loading, setLoading] = useState(false);
-  const { auth, app, db, setDb } = useFirebaseInit();
+  const { auth, db } = useFirebaseInit();
   const navigation = useNavigation();
   const { history, push, reset } = useNavigationHistory();
   const { userObj, logoutFn } = useAuthenticationStateSlice();
@@ -63,23 +67,23 @@ const UpdatedProfile = ({ profile }) => {
     }
   };
 
-  useEffect(() => {
-    const getDb = async () => {
-      const { getFirestore } = await import('firebase/firestore');
-      try {
-        const db_ = getFirestore(app);
-        if (db_) {
-          setDb(db_)
-        }
-      }
-      catch (err) {
-        console.log("Error while getting db instance: ", err);
-      }
-    }
-    if (Object.keys(app).length) {
-      getDb();
-    }
-  }, [app])
+  // useEffect(() => {
+  //   const getDb = async () => {
+  //     const { getFirestore } = await import('firebase/firestore');
+  //     try {
+  //       const db_ = getFirestore(app);
+  //       if (db_) {
+  //         setDb(db_)
+  //       }
+  //     }
+  //     catch (err) {
+  //       console.log("Error while getting db instance: ", err);
+  //     }
+  //   }
+  //   if (Object.keys(app).length) {
+  //     getDb();
+  //   }
+  // }, [app])
 
   useFocusEffect(
     React.useCallback(() => {
@@ -198,7 +202,25 @@ const UpdatedProfile = ({ profile }) => {
     }
   };
 
+  useEffect(() => {
+    const wait2SecToShowLoader = async () => {
+      startTransition(() => {
+        setShowComponentTransitioning(true);
+      })
+      await fakeApiCall();
+      startTransition(() => {
+        setShowComponentTransitioning(false);
+      })
+    }
+    if (isEditing) {
+      wait2SecToShowLoader();
+    }
+  }, [isEditing]);
+
   const handleSaveProfile = async () => {
+    startTransition(() => {
+      setLoading(true);
+    })
     try {
       const uploadedUrl = await handleProfileImageUpload(image);
       const profileData = {
@@ -220,7 +242,6 @@ const UpdatedProfile = ({ profile }) => {
         Alert.alert('Incomplete Form', 'Please fill all fields.');
         return;
       }
-      setLoading(true);
       const user = userObj; //auth?.currentUser;
       if (!user) {
         Alert.alert('Not Logged In', 'You must be signed in to complete your profile.');
@@ -229,15 +250,19 @@ const UpdatedProfile = ({ profile }) => {
       const { doc, setDoc } = await import('firebase/firestore');
       await setDoc(doc(db, 'users', user.uid), profileData);
       Alert.alert('Success', 'Your profile has been updated!');
-      setIsEditing(false);
     } catch (error) {
       Alert.alert('Error', error.message);
     } finally {
-      setLoading(false);
+      startTransition(() => {
+        setIsEditing(false);
+        setLoading(false);
+      })
     }
   };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <ModalLoader visible={showComponentTransitioning} />
       <Text h3 style={styles.header}>Profile Details</Text>
       <Avatar
         rounded
@@ -272,11 +297,11 @@ const UpdatedProfile = ({ profile }) => {
         </>
       ) : (
         <View style={styles.container_}>
-            <Text style={[styles.label]}>Full Name</Text>
+          <Text style={[styles.label]}>Full Name</Text>
           <Text>{name}</Text>
-            <Text style={[styles.label, { marginTop: 20 }]}>Email</Text>
+          <Text style={[styles.label, { marginTop: 20 }]}>Email</Text>
           <Text>{email}</Text>
-            <Text style={[styles.label, { marginTop: 20 }]}>Location</Text>
+          <Text style={[styles.label, { marginTop: 20 }]}>Location</Text>
           <Text>{location}</Text>
         </View>
       )}
@@ -330,17 +355,18 @@ const UpdatedProfile = ({ profile }) => {
           buttonStyle={styles.button}
         />
 
-        {isEditing && (
-          loading ? (
-            <ActivityIndicator size="large" color="#2089dc" />
-          ) : (
+        {isEditing &&
+          <>
+            <ModalLoader visible={loading} />
             <Button
               title="Save Profile"
               onPress={handleSaveProfile}
               buttonStyle={styles.button}
+              disabled={loading}
+              disabledStyle={{ opacity: 0.5 }}
             />
-          )
-        )}
+          </>
+        }
       </View>
     </ScrollView>
   )

@@ -11,6 +11,7 @@ import { useNavigationHistory } from '../../zustand/useNavigationHistory';
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { CLOUD_NAME } from '@env';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import ModalLoader from '../../components/ModalLoader';
 
 const DateTimePickerCustomized = ({ showDatePicker, setShowDatePicker, bday, onChange }) => {
   return (
@@ -179,6 +180,8 @@ const EditProfileScreen = () => {
   };
 
   const handleSaveProfile = async () => {
+    setLoading(true);
+    await fakeApiCall();
     try {
       const uploadedUrl = await handleProfileImageUpload(image);
       const profileData = {
@@ -200,7 +203,6 @@ const EditProfileScreen = () => {
         Alert.alert('Incomplete Form', 'Please fill all fields.');
         return;
       }
-      setLoading(true);
       const user = userObj; //auth?.currentUser;
       if (!user) {
         Alert.alert('Not Logged In', 'You must be signed in to complete your profile.');
@@ -273,18 +275,17 @@ const EditProfileScreen = () => {
           Selected: {selectedIndex !== null ? genderOptions[selectedIndex] : 'None'}
         </Text>
       </View>
-      {loading ? (
-        <ActivityIndicator size="large" color="#2089dc" />
-      ) : (
-        <Button
-          title="Save Profile"
-          onPress={handleSaveProfile}
-          buttonStyle={styles.button}
-        />
-      )}
+      <ModalLoader visible={loading} />
+      <Button
+        title="Save Profile"
+        onPress={handleSaveProfile}
+        buttonStyle={styles.button}
+      />
     </ScrollView>
   );
 };
+
+const fakeApiCall = () => new Promise((resolve) => setTimeout(resolve, 2000));
 
 const styles = StyleSheet.create({
   container: {
