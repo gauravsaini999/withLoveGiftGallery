@@ -57,7 +57,7 @@ const UpdatedProfile = ({ profile }) => {
   const { auth, db } = useFirebaseInit();
   const navigation = useNavigation();
   const { history, push, reset } = useNavigationHistory();
-  const { userObj, logoutFn } = useAuthenticationStateSlice();
+  const { userObj: user, logoutFn } = useAuthenticationStateSlice();
   const [isEditing, setIsEditing] = useState(false); // Edit Mode On / Off
 
   const onChange = (event, selectedDate) => {
@@ -115,22 +115,24 @@ const UpdatedProfile = ({ profile }) => {
   }, []);
 
   const uploadImageToCloudinary = async (photoUri) => {
-    const data = new FormData();
-    data.append('file', {
-      uri: photoUri,
-      type: 'image/jpeg',
-      name: 'upload.jpg',
-    });
-    data.append('upload_preset', 'user_uploads_unsigned');
-
     try {
+      const data = new FormData();
+      data.append('file', {
+        uri: photoUri,
+        type: 'image/jpeg',
+        name: `${user.uid}`
+      });
+      data.append('upload_preset', 'user_uploads_unsigned');
+      data.append("folder", "user_avatars");
+      data.append("public_id", user.uid)
+
       const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
         method: 'POST',
         body: data,
       });
 
       const json = await res.json();
-
+      console.log(" <<<<<<<<<<<< json >>>>>>>>>", json)
       const optimizeUrl = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/q_auto,f_auto/${json.public_id}.jpg`;
       const autoCropUrl = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/c_fill,g_auto,w_240,h_240/${json.public_id}.jpg`;
 
@@ -193,7 +195,7 @@ const UpdatedProfile = ({ profile }) => {
   const handleProfileImageUpload = async (photoUri) => {
     try {
       const uploadedUrl = await uploadImageToCloudinary(photoUri);
-      console.log('Profile image uploaded and URL saved!');
+      console.log('Profile image uploaded and URL saved at !', uploadedUrl);
       return uploadedUrl;
     } catch (error) {
       Alert.alert('Upload failed', 'Could not upload image. Please try again.');
@@ -231,8 +233,7 @@ const UpdatedProfile = ({ profile }) => {
         imageUrl: uploadedUrl || '',
         completedAt: new Date().toISOString(),
       };
-      if (!uploadedUrl.toString().trim() ||
-        !name.trim() ||
+      if (!uploadedUrl || !name.trim() ||
         !email.trim() ||
         !location.trim() ||
         !bday.toISOString().trim() ||
@@ -241,7 +242,6 @@ const UpdatedProfile = ({ profile }) => {
         Alert.alert('Incomplete Form', 'Please fill all fields.');
         return;
       }
-      const user = userObj; //auth?.currentUser;
       if (!user) {
         Alert.alert('Not Logged In', 'You must be signed in to complete your profile.');
         return;

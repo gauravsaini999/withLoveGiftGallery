@@ -51,7 +51,7 @@ const EditProfileScreen = () => {
   const { auth, db } = useFirebaseInit();
   const navigation = useNavigation();
   const { history, push, reset } = useNavigationHistory();
-  const { userObj, logoutFn } = useAuthenticationStateSlice();
+  const { userObj: user, logoutFn } = useAuthenticationStateSlice();
   const [selectedIndex, setSelectedIndex] = useState(null); // for gender selection radio boxes group
   const genderOptions = ['Male', 'Female', 'Other']; // options for gender selection
 
@@ -96,9 +96,11 @@ const EditProfileScreen = () => {
     data.append('file', {
       uri: photoUri,
       type: 'image/jpeg',
-      name: 'upload.jpg',
+      name: `${user.uid}`
     });
     data.append('upload_preset', 'user_uploads_unsigned');
+    data.append("folder", "user_avatars");
+    data.append("public_id", user.uid)
 
     try {
       const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
@@ -192,7 +194,7 @@ const EditProfileScreen = () => {
         imageUrl: uploadedUrl ? uploadedUrl : '',
         completedAt: new Date(),
       };
-      if (!uploadedUrl.toString().trim() ||
+      if (!uploadedUrl ||
         !name.trim() ||
         !email.trim() ||
         !location.trim() ||
@@ -201,8 +203,7 @@ const EditProfileScreen = () => {
         !genderOptions[selectedIndex]) {
         Alert.alert('Incomplete Form', 'Please fill all fields.');
         return;
-      }
-      const user = userObj; //auth?.currentUser;
+      } //auth?.currentUser;
       if (!user) {
         Alert.alert('Not Logged In', 'You must be signed in to complete your profile.');
         return;
