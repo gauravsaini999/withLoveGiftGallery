@@ -24,6 +24,7 @@ import {
   List,
   IconButton
 } from 'react-native-paper';
+import { colors } from '../../shared/colors'
 
 const fakeApiCall = () => new Promise((resolve) => setTimeout(resolve, 500));
 
@@ -329,9 +330,10 @@ const UpdatedProfile = ({ profile }) => {
       <Surface style={styles.infoCard}>
         {isEditing ? (
           <>
-            <TextInput label="Full Name" value={name} onChangeText={setName} mode="outlined" />
-            <TextInput label="Email" value={email} onChangeText={setEmail} mode="outlined" keyboardType="email-address" />
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ marginBottom: 4 }}><Text variant="titleSmall" style={styles.sectionTitle}>Personal Info</Text></View>
+            <View style={{ marginBottom:8 }}><TextInput label="Full Name" value={name} onChangeText={setName} mode="outlined" /></View>
+            <View style={{ marginBottom: 8 }}><TextInput label="Email" value={email} onChangeText={setEmail} mode="outlined" keyboardType="email-address" /></View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
               <TextInput
                 label="Location"
                 value={location}
@@ -493,9 +495,9 @@ const styles = StyleSheet.create({
   infoCard: {
     paddingVertical: 10,
     paddingHorizontal: 15,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.elevatedBox[2],
     borderRadius: 12,
-    elevation: 3,
+    elevation: 5,
     marginBottom: 20,
   },
 
