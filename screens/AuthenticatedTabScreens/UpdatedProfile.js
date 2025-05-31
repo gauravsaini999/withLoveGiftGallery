@@ -67,24 +67,6 @@ const UpdatedProfile = ({ profile }) => {
     }
   };
 
-  // useEffect(() => {
-  //   const getDb = async () => {
-  //     const { getFirestore } = await import('firebase/firestore');
-  //     try {
-  //       const db_ = getFirestore(app);
-  //       if (db_) {
-  //         setDb(db_)
-  //       }
-  //     }
-  //     catch (err) {
-  //       console.log("Error while getting db instance: ", err);
-  //     }
-  //   }
-  //   if (Object.keys(app).length) {
-  //     getDb();
-  //   }
-  // }, [app])
-
   useFocusEffect(
     React.useCallback(() => {
       navigation.setOptions({
@@ -132,7 +114,6 @@ const UpdatedProfile = ({ profile }) => {
       });
 
       const json = await res.json();
-      console.log(" <<<<<<<<<<<< json >>>>>>>>>", json)
       const optimizeUrl = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/q_auto,f_auto/${json.public_id}.jpg`;
       const autoCropUrl = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/c_fill,g_auto,w_240,h_240/${json.public_id}.jpg`;
 
