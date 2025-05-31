@@ -1,7 +1,6 @@
 import { Modal, View, ActivityIndicator, StyleSheet } from 'react-native';
 
 const ModalLoader = ({ visible }) => {
-  console.log(visible, 'visible.....')
   return (
     <Modal
       transparent={true}

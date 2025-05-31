@@ -162,7 +162,6 @@ const EditProfileScreen = () => {
       allowsEditing: true,
       quality: 0.7,
     });
-    console.log(result, 'result .....')
     if (!result?.canceled) {
       setImage(result.assets[0].uri);
     }
