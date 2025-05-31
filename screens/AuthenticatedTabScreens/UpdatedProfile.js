@@ -311,7 +311,7 @@ const UpdatedProfile = ({ profile }) => {
   })();
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={styles.container} bounces={false}>
       <ModalLoader visible={showComponentTransitioning} />
 
       <Text variant="headlineMedium" style={styles.header}>Profile Details</Text>
@@ -330,9 +330,9 @@ const UpdatedProfile = ({ profile }) => {
       <Surface style={styles.infoCard}>
         {isEditing ? (
           <>
-            <View style={{ marginBottom: 4 }}><Text variant="titleSmall" style={styles.sectionTitle}>Personal Info</Text></View>
-            <View style={{ marginBottom:8 }}><TextInput label="Full Name" value={name} onChangeText={setName} mode="outlined" /></View>
-            <View style={{ marginBottom: 8 }}><TextInput label="Email" value={email} onChangeText={setEmail} mode="outlined" keyboardType="email-address" /></View>
+            <View style={{ marginBottom: 4 }}><Text variant="titleSmall" style={[styles.sectionTitle, {textAlign: 'center'}]}>Personal Info</Text></View>
+            <View style={{ marginBottom: 8 }}><TextInput style={{ backgroundColor: colors.elevatedBox[2] }} label="Full Name" value={name} onChangeText={setName} mode="outlined" /></View>
+            <View style={{ marginBottom: 8 }}><TextInput style={{ backgroundColor: colors.elevatedBox[2] }} label="Email" value={email} onChangeText={setEmail} mode="outlined" keyboardType="email-address" /></View>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
               <TextInput
                 label="Location"
@@ -340,7 +340,7 @@ const UpdatedProfile = ({ profile }) => {
                 onChangeText={setLocation}
                 mode="outlined"
                 left={<TextInput.Icon icon="map-marker" />}
-                style={{ flex: 1 }}
+                style={{ flex: 1, backgroundColor: colors.elevatedBox[2]}}
               />
               <IconButton
                 icon="crosshairs-gps"
@@ -452,7 +452,7 @@ const LabelValue = ({ label, value }) => (
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    backgroundColor: '#f7f9fc',
+    backgroundColor: colors.contentColor,
     flexGrow: 1,
   },
   header: {
@@ -467,6 +467,7 @@ const styles = StyleSheet.create({
   photoButton: {
     alignSelf: 'center',
     marginBottom: 20,
+    backgroundColor: colors.elevatedBox[2]
   },
   section: {
     padding: 20,

@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from "@react-navigation/native";
 import { useFocusEffect } from "@react-navigation/native";
 import * as React from 'react';
@@ -10,6 +9,7 @@ import { useNavigationHistory } from "../../zustand/useNavigationHistory";
 import { useFirebaseInit } from "../../zustand/useFirebaseInit";
 import { signOut } from 'firebase/auth';
 import { useAuthenticationStateSlice } from '../../zustand/useAuthenticationStateSlice';
+import { colors } from "../../shared/colors";
 
 export default function HomeScreen() {
   const { history, push } = useNavigationHistory();
@@ -155,6 +155,7 @@ export default function HomeScreen() {
 
   return (
     <ScrollView
+      bounces={false}
       showsVerticalScrollIndicator={false}
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.scrollViewContainer}
@@ -190,7 +191,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   scrollViewContainer: {
     paddingBottom: 20,
-    marginTop: 20,
+    backgroundColor: colors.contentColor
   },
   containerStyles: {
     flex: 1

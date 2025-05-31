@@ -5,7 +5,6 @@ import {
 } from 'react-native';
 import {
   NavigationContainer,
-  useRoute
 } from '@react-navigation/native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { enableScreens } from 'react-native-screens';
@@ -39,7 +38,7 @@ function UnauthenticatedTabbedNavigator() {
           setProfilePress(true);
         }} changeStyle={false} />),
         headerStyle: {
-          backgroundColor: colors.headerAndTabBar[3],
+          backgroundColor: colors.contentColor,
         },
         headerTintColor: '#444',
         headerTitleStyle: {
@@ -59,7 +58,7 @@ function UnauthenticatedTabbedNavigator() {
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarStyle: {
-          backgroundColor: colors.headerAndTabBar[3],
+          backgroundColor: colors.contentColor,
         },
         tabBarActiveTintColor: '#333',
         tabBarInactiveTintColor: '#444',
@@ -78,7 +77,7 @@ function AuthenticatedTabbedNavigator() {
       screenOptions={({ route }) => ({
         headerShown: true,
         headerStyle: {
-          backgroundColor: colors.headerAndTabBar[3],
+          backgroundColor: colors.contentColor,
         },
         headerTintColor: '#444',
         headerTitleStyle: {
@@ -98,7 +97,7 @@ function AuthenticatedTabbedNavigator() {
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarStyle: {
-          backgroundColor: colors.headerAndTabBar[3],
+          backgroundColor: colors.contentColor,
         },
         tabBarActiveTintColor: '#333',
         tabBarInactiveTintColor: '#444',

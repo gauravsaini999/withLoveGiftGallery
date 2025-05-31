@@ -27,6 +27,6 @@ export default function CartScreen() {
 }
 
 const styles = StyleSheet.create({
-  screenArea: { flex: 1, alignItems: 'center', justifyContent: 'center', textAlign: 'center', backgroundColor: colors.screenContent },
+  screenArea: { flex: 1, alignItems: 'center', justifyContent: 'center', textAlign: 'center', backgroundColor: colors.contentColor },
   textScreen: { color: '#888' }
 })
