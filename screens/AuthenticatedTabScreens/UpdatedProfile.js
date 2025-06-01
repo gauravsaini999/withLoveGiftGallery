@@ -154,8 +154,6 @@ const UpdatedProfile = ({ profile }) => {
         name: `${user.uid}`
       });
       data.append('upload_preset', 'user_uploads_unsigned');
-      data.append("folder", "user_avatars");
-      data.append("public_id", user.uid)
 
       const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
         method: 'POST',
@@ -315,12 +313,17 @@ const UpdatedProfile = ({ profile }) => {
       <ModalLoader visible={showComponentTransitioning} />
 
       <Text variant="headlineMedium" style={styles.header}>Profile Details</Text>
-
-      <Avatar.Image
-        size={120}
-        source={image ? { uri: image } : require('../../assets/default-avatar.png')}
-        style={styles.avatar}
-      />
+      <View style={styles.surroundingCircle}>
+        <View style={styles.clippingCircle}>
+          <View style={styles.avatarWrapper}>
+            <Avatar.Image
+              size={160}
+              source={image ? { uri: image } : require('../../assets/default-avatar.png')}
+              style={styles.avatar}
+            />
+          </View>
+        </View>
+      </View>
       {isEditing && (
         <Button mode="outlined" onPress={handleChoosePhoto} style={styles.photoButton}>
           Change Photo
@@ -330,7 +333,7 @@ const UpdatedProfile = ({ profile }) => {
       <Surface style={styles.infoCard}>
         {isEditing ? (
           <>
-            <View style={{ marginBottom: 4 }}><Text variant="titleSmall" style={[styles.sectionTitle, {textAlign: 'center'}]}>Personal Info</Text></View>
+            <View style={{ marginBottom: 4 }}><Text variant="titleSmall" style={[styles.sectionTitle, { textAlign: 'center' }]}>Personal Info</Text></View>
             <View style={{ marginBottom: 8 }}><TextInput style={{ backgroundColor: colors.elevatedBox[2] }} label="Full Name" value={name} onChangeText={setName} mode="outlined" /></View>
             <View style={{ marginBottom: 8 }}><TextInput style={{ backgroundColor: colors.elevatedBox[2] }} label="Email" value={email} onChangeText={setEmail} mode="outlined" keyboardType="email-address" /></View>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
@@ -340,7 +343,7 @@ const UpdatedProfile = ({ profile }) => {
                 onChangeText={setLocation}
                 mode="outlined"
                 left={<TextInput.Icon icon="map-marker" />}
-                style={{ flex: 1, backgroundColor: colors.elevatedBox[2]}}
+                style={{ flex: 1, backgroundColor: colors.elevatedBox[2] }}
               />
               <IconButton
                 icon="crosshairs-gps"
@@ -458,11 +461,37 @@ const styles = StyleSheet.create({
   header: {
     alignSelf: 'center',
     marginBottom: 20,
+    color: colors.elevatedBox[2]
+  },
+  avatarWrapper: {
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    overflow: 'hidden',
+  },
+  surroundingCircle: {
+    alignSelf: 'center',
+    width: 185, // 120 (avatar) + 2*5 (ring thickness)
+    height: 185,
+    borderRadius: 92.5, // half of width/height
+    backgroundColor: colors.elevatedBox[2], // ring color
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20
+  },
+  clippingCircle: {
+    alignSelf: 'center',
+    width: 180, // 120 (avatar) + 2*5 (ring thickness)
+    height: 180,
+    borderRadius: 90, // half of width/height
+    backgroundColor: colors.contentColor, // ring color
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   avatar: {
     alignSelf: 'center',
+    justifyContent: 'center',
     backgroundColor: '#eee',
-    marginBottom: 10,
   },
   photoButton: {
     alignSelf: 'center',

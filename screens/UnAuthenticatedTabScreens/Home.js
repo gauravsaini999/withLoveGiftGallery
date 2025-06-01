@@ -191,7 +191,8 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   scrollViewContainer: {
     paddingBottom: 20,
-    backgroundColor: colors.contentColor
+    backgroundColor: colors.contentColor,
+    paddingTop: 50
   },
   containerStyles: {
     flex: 1
