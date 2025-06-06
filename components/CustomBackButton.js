@@ -5,16 +5,18 @@ import { colors } from '../shared/colors';
 import { useNavigationHistory } from '../zustand/useNavigationHistory';
 
 export default function IOSBackButton() {
-  const { history } = useNavigationHistory();
+  const { history, reset, setProfilePress } = useNavigationHistory();
   const navigation = useNavigation();
+  console.log(history, "------------ history ---------------")
   return (
     <TouchableOpacity onPress={() => {
       if (history.length > 1)
-        navigation.navigate(history[history.length - 2].split(' ')[0] === 'Home' ? 'Home' : history[history.length - 2])
-      else if (history.length == 1)
-        navigation.navigate(history[history.length - 1].split(' ')[0] === 'Home' ? 'Home' : history[history.length - 1])
-      else 
-        return null
+          navigation.navigate(history[history.length - 2])
+      else if (history.length <= 1) {
+        setProfilePress(false);
+        // navigation.navigate('Home', { screen: 'Home Screen' });
+        reset();
+      }
     }} style={styles.backButton}>
       <Ionicons
         name={Platform.OS === 'ios' ? 'chevron-back' : 'arrow-back'}

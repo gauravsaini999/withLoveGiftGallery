@@ -6,9 +6,10 @@ import { useFirebaseInit } from '../../zustand/useFirebaseInit';
 import { useNavigationHistory } from '../../zustand/useNavigationHistory';
 import { useAuthenticationStateSlice } from '../../zustand/useAuthenticationStateSlice';
 import IOSBackButton from '../../components/CustomBackButton';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import ProfileIconButton from '../../components/ProfileButton';
 import TextInput from "react-native-text-input-interactive";
+import Toast from 'react-native-toast-message';
 
 if (
   Platform.OS === 'android' &&
@@ -20,6 +21,7 @@ if (
 const ProfileScreen = () => {
   const [enableSignUp, setEnableSignUp] = React.useState(false);
   const [visible, setVisible] = React.useState(false);
+  const [phoneSignUp, setPhoneSignUp] = React.useState(false);
   const [values, setValues] = React.useState({
     username: '',
     password: '',
@@ -47,28 +49,29 @@ const ProfileScreen = () => {
   const passwordFocusTime = React.useRef(0);
   // const debounceTimeout = React.useRef(null);
   const autofillThreshold = 50; // milliseconds
-  const { history } = useNavigationHistory();
+  const { history, push, reset, setProfilePress } = useNavigationHistory();
   const navigation = useNavigation();
-  const { auth, user, setUser } = useFirebaseInit();
+  const { auth } = useFirebaseInit();
   const { loginFn, isLoggedIn } = useAuthenticationStateSlice();
-
-  React.useEffect(() => {
-    if (isLoggedIn) {
-      navigation.navigate('Edit Profile');
-    }
-  }, [isLoggedIn])
 
   useFocusEffect(
     React.useCallback(() => {
-      navigation.setOptions({
+      push("Authenticate Screen");
+    }, [])
+  );
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const parent = navigation.getParent();
+      parent.setOptions({
         headerRight: () => <ProfileIconButton changeStyle={true} onPress={() => {
-          if (navigation.getState().routes[navigation.getState().index].name !== 'Profile') {
-            navigation.navigate('Profile');
+          if (navigation.getState().routes[navigation.getState().index].name !== 'Authenticate Screen') {
+            navigation.navigate('Auth', { screen: "Authenticate Screen" });
           }
         }} />,
-        headerLeft: history.length > 1 ? () => <IOSBackButton /> : null,
+        headerLeft: () => <IOSBackButton />,
       })
-    }, [navigation, history.length]))
+    }, [navigation]))
 
   const handleChange = (inputIdentifier, enteredValue) => {
     setValues((prev) => {
@@ -136,8 +139,25 @@ const ProfileScreen = () => {
       const user = userCredential.user;
       if (user) {
         handleReset();
+        await sendEmailVerification(user);
+        Toast.show({
+          type: 'success',
+          text1: 'Verification Email Sent!',
+          text2: 'Check your inbox to verify your account.',
+        });
+        Toast.show({
+          type: 'Info',
+          text1: 'Verify Your Mobile Number!',
+          text2: 'Please link your mobile number with your account.',
+        });
+        setPhoneSignUp(true);
       }
     } catch (err) {
+      Toast.show({
+        type: 'error',
+        text1: 'Signup Error',
+        text2: err.message,
+      });
       setValues((previous) => {
         return { ...previous, error: err.message }
       });
@@ -151,7 +171,12 @@ const ProfileScreen = () => {
       const currentUser = auth.currentUser;
       if (currentUser) {
         loginFn(currentUser);
-        handleReset();
+        reset();
+        setProfilePress(true);
+        function cb() {
+          navigation.navigate('Edit Profile');
+        }
+        handleReset(cb());
       }
     } catch (err) {
       setValues((previous) => {
@@ -160,8 +185,11 @@ const ProfileScreen = () => {
     }
   };
 
-  const handleReset = () => {
+  const handleReset = (cb) => {
     decider();
+    if (cb) {
+      cb
+    }
   }
 
   const renderSignupLoginScreen = () => (

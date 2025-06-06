@@ -1,7 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import { useFocusEffect } from "@react-navigation/native";
 import * as React from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView } from 'react-native';
 import ElevatedBox from '../../shared/elevated_box';
 import MyCarousel from "../../shared/carousel";
 import IOSBackButton from "../../components/CustomBackButton";
@@ -12,10 +12,10 @@ import { useAuthenticationStateSlice } from '../../zustand/useAuthenticationStat
 import { colors } from "../../shared/colors";
 
 export default function HomeScreen() {
-  const { history, push } = useNavigationHistory();
+  const { history, push, reset, initPaths } = useNavigationHistory();
   const navigation = useNavigation();
 
-  const { logoutFn, loginFn, isLoggedIn } = useAuthenticationStateSlice();
+  const { logoutFn, loginFn, isLoggedIn, reset: resetAuthUser } = useAuthenticationStateSlice();
   const { firebaseConfig, setApp, setAuth, app, auth, setDb } = useFirebaseInit();
 
   const [firebaseInitialized, setFirebaseInitialized] = React.useState(false);
@@ -39,6 +39,7 @@ export default function HomeScreen() {
   useFocusEffect(
     React.useCallback(() => {
       const parent = navigation.getParent();
+      push('Home');
       parent.setOptions({
         headerTitle: 'Home',
         headerLeft: history.length > 1 ? () => <IOSBackButton /> : null,
@@ -46,9 +47,17 @@ export default function HomeScreen() {
     }, [navigation, history])
   );
 
-  React.useLayoutEffect(() => {
-    push('Home');
+  React.useEffect(() => {
+    return () => {
+      reset();
+    }
   }, []);
+
+    React.useEffect(() => {
+      if (initPaths.length) {
+        console.log("<<<< Init Paths Array: ", initPaths);
+      }
+    }, [initPaths])
 
   React.useEffect(() => {
     loadFirebase();

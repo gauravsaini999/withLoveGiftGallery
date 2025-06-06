@@ -14,6 +14,10 @@ export const useAuthenticationStateSlice = create((set, get) => ({
     logoutFn: () => set((state) => ({
         isLoggedIn: false,
         userObj: null
+    })),
+    reset: () => set((state) => ({
+        isLoggedIn: false,
+        userObj: null
     }))
 }))
 // ,

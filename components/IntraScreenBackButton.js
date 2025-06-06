@@ -1,6 +1,5 @@
 import { TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; // or 'react-native-vector-icons/Ionicons'
-import { useNavigation } from '@react-navigation/native';
 import { colors } from '../shared/colors';
 import { useNavigationHistory } from '../zustand/useNavigationHistory';
 

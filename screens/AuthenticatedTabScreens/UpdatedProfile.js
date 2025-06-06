@@ -445,13 +445,6 @@ const UpdatedProfile = ({ profile }) => {
   );
 };
 
-const LabelValue = ({ label, value }) => (
-  <View style={{ marginBottom: 15 }}>
-    <Text style={styles.label}>{label}</Text>
-    <Text>{value}</Text>
-  </View>
-);
-
 const styles = StyleSheet.create({
   container: {
     padding: 20,

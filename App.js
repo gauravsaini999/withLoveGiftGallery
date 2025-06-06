@@ -5,6 +5,9 @@ import {
 } from 'react-native';
 import {
   NavigationContainer,
+  useFocusEffect,
+  useNavigation,
+  useNavigationContainerRef
 } from '@react-navigation/native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { enableScreens } from 'react-native-screens';
@@ -14,6 +17,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import CartScreen from './screens/UnAuthenticatedTabScreens/Cart';
 import HomeScreen from './screens/UnAuthenticatedTabScreens/Home';
 import ProfileScreen from './screens/AuthenticationScreens/Profile';
+import LinkPhoneScreen from './screens/AuthenticationScreens/LinkPhone';
 import ProfileScreenDecider from './screens/AuthenticatedTabScreens/ProfileDecider';
 import ProfileIconButton from './components/ProfileButton';
 import SelectedScreen from './screens/UnAuthenticatedTabScreens/SelectedToys';
@@ -23,19 +27,52 @@ import { colors } from './shared/colors';
 import { useNavigationHistory } from './zustand/useNavigationHistory';
 import { useAuthenticationStateSlice } from './zustand/useAuthenticationStateSlice';
 import { Provider as PaperProvider } from 'react-native-paper';
+import IOSBackButton from './components/CustomBackButton';
+import IntraScreenBackButton from './components/IntraScreenBackButton';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
+
+function LoginStackNavigatorComponent() {
+  return (
+    <Stack.Navigator
+      initialRouteName="Authenticate Screen"
+      screenOptions={{
+        headerShown: false,
+        contentStyle: {
+          backgroundColor: 'rgba(232, 241, 231, 0.5)',
+        },
+      }}
+    >
+      <Stack.Screen
+        name="Authenticate Screen"
+        component={ProfileScreen}
+      />
+      <Stack.Screen
+        name="Phone Link"
+        component={LinkPhoneScreen}
+      />
+    </Stack.Navigator>
+  )
+}
+
+
 function UnauthenticatedTabbedNavigator() {
-  const { setProfilePress } = useNavigationHistory();
+  const { setProfilePress, reset } = useNavigationHistory();
+  const { isLoggedIn } = useAuthenticationStateSlice();
   return (
     <Tab.Navigator
+      initialRouteName='Home'
       screenOptions={({ route, navigation }) => ({
         headerShown: true,
         headerRight: () => (<ProfileIconButton onPress={() => {
-          navigation.navigate('Profile');
-          setProfilePress(true);
+          reset();
+          if (!isLoggedIn) {
+            navigation.navigate('Auth', { screen: "Authenticate Screen" });
+          } else {
+            setProfilePress(true);
+          }
         }} changeStyle={false} />),
         headerStyle: {
           backgroundColor: colors.contentColor,
@@ -66,18 +103,37 @@ function UnauthenticatedTabbedNavigator() {
       <Tab.Screen name="Home" component={HomeStackNavigatorComponent} />
       <Tab.Screen name="Selected Toys" component={SelectedScreen} />
       <Tab.Screen name="Cart" component={CartScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
+      <Tab.Screen name="Auth" component={LoginStackNavigatorComponent} options={{ tabBarItemStyle: { display: 'none' } }} />
     </Tab.Navigator>
   );
 }
 
 function AuthenticatedTabbedNavigator() {
+  const { setProfilePress, reset } = useNavigationHistory();
+  const navigation = useNavigation();
+  useFocusEffect(
+    React.useCallback(() => {
+      navigation.navigate('My Orders');
+    }, [])
+  )
   return (
     <Tab.Navigator
+      initialRouteName='Edit Profile'
       screenOptions={({ route }) => ({
         headerShown: true,
         headerStyle: {
           backgroundColor: colors.contentColor,
+        },
+        headerRight: () => (<ProfileIconButton onPress={() => {
+          reset();
+          if (!isLoggedIn) {
+            navigation.navigate('Auth', { screen: "Authenticate Screen" });
+          } else {
+            setProfilePress(true);
+          }
+        }} changeStyle={false} />),
+        headerLeft: () => {
+          return <IntraScreenBackButton />
         },
         headerTintColor: '#444',
         headerTitleStyle: {
@@ -105,6 +161,7 @@ function AuthenticatedTabbedNavigator() {
       <Tab.Screen name="Edit Profile" component={ProfileScreenDecider} />
       <Tab.Screen name="My Orders" component={MyOrders} />
       <Tab.Screen name="Saved Addresses" component={SavedAddresses} />
+      <Tab.Screen name="Auth" component={LoginStackNavigatorComponent} options={{ tabBarItemStyle: { display: 'none' } }} />
     </Tab.Navigator>
   );
 }
@@ -139,21 +196,31 @@ function getActiveRouteName(state) {
 }
 
 export default function App() {
-  const { push, pop, history, profilePress, setActiveRoute } = useNavigationHistory();
+  const { push, pop, history, profilePress, setActiveRoute, insertInitPaths, activeRoute } = useNavigationHistory();
   const routeNameRef = React.useRef(null);
   const { isLoggedIn } = useAuthenticationStateSlice();
+  const navigationRef = useNavigationContainerRef();
   enableScreens();
   // To check whether persistence is actually happening in zustand
   // AsyncStorage.getItem('firebase-storage').then((value) => {
   //   console.log('Persisted raw JSON:', value);
   // });
+  console.log(activeRoute, '-------- active route ----------')
+  console.log(profilePress, '----------Profile Press -------------')
+  console.log(isLoggedIn, '----- is logged in ----------')
   return (
     <PaperProvider>
       <SafeAreaProvider>
         <StatusBar barStyle="dark-content" />
         {/* <SafeAreaView style={{ flex: 1, backgroundColor: '#EEE' }}> */}
         <NavigationContainer
+          ref={navigationRef}
           onReady={(nav) => {
+            const fullState = navigationRef.getRootState();
+            console.log('Root nav state:', JSON.stringify(fullState, null, 2));
+            const stateToPush = JSON.stringify(fullState, null, 2)
+            insertInitPaths(stateToPush);
+
             const rootState = nav?.getRootState?.();
             if (!rootState) return;
 
