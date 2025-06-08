@@ -203,14 +203,17 @@ const EditProfileScreen = () => {
         !genderOptions[selectedIndex]) {
         Alert.alert('Incomplete Form', 'Please fill all fields.');
         return;
-      } //auth?.currentUser;
+      }
       if (!user) {
         Alert.alert('Not Logged In', 'You must be signed in to complete your profile.');
         return;
       }
-      const { doc, setDoc } = await import('firebase/firestore');
-      await setDoc(doc(db, 'users', user.uid), profileData);
-      Alert.alert('Success', 'Your profile has been updated!');
+      const { doc, updateDoc } = await import('firebase/firestore');
+      await updateDoc(doc(db, 'users', user.uid), profileData).then(() => {
+        Alert.alert('Success', 'Your profile has been updated!');
+      }).catch((error) => {
+        Alert.alert('Error', error.message);
+      });
     } catch (error) {
       Alert.alert('Error', error.message);
     } finally {

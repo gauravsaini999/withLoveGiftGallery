@@ -1,11 +1,11 @@
 import { useRef, useState, startTransition } from 'react';
-import { ScrollView, TouchableWithoutFeedback, KeyboardAvoidingView, Platform } from 'react-native';
-import { PhoneAuthProvider, linkWithCredential } from 'firebase/auth';
+import { ScrollView, TouchableWithoutFeedback, KeyboardAvoidingView, Platform, Alert, Keyboard } from 'react-native';
 import { useFirebaseInit } from '../../zustand/useFirebaseInit';
 import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha';
 import LoginScreen from "react-native-login-screen";
 import Toast from 'react-native-toast-message';
 import ModalLoader from '../../components/ModalLoader';
+import { useAuthenticationStateSlice } from '../../zustand/useAuthenticationStateSlice';
 
 export default function LinkPhone({ navigation }) {
   const recaptchaVerifier = useRef(null);
@@ -13,9 +13,11 @@ export default function LinkPhone({ navigation }) {
   const [otp, setOtp] = useState('');
   const [verificationId, setVerificationId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { auth } = useFirebaseInit();
+  const { auth, db, setDb } = useFirebaseInit();
+  const { userObj: user } = useAuthenticationStateSlice();
 
   const sendOtp = async () => {
+    const { PhoneAuthProvider} = await import('firebase/auth');
     try {
       startTransition(() => {
         setLoading(true);
@@ -42,6 +44,7 @@ export default function LinkPhone({ navigation }) {
   };
 
   const linkPhoneNumber = async () => {
+    const { PhoneAuthProvider, linkWithCredential } = await import ('firebase/auth');
     try {
       startTransition(() => {
         setLoading(true);
@@ -52,7 +55,8 @@ export default function LinkPhone({ navigation }) {
         type: 'success',
         text1: 'Phone Linked!',
       });
-      navigation.goBack(); // or navigate elsewhere
+      await addFlagToUserDb();
+      await navigation.navigate('Home', { screen: 'Home Screen' }); // or navigate elsewhere
     } catch (err) {
       Toast.show({
         type: 'error',
@@ -65,6 +69,26 @@ export default function LinkPhone({ navigation }) {
       })
     }
   };
+
+  const addFlagToUserDb = async () => {
+    const { doc, setDoc } = await import('firebase/firestore');
+    try {
+      await setDoc(doc(db, 'users', user.uid), { phoneLinked: true }).then(() => {
+        Toast.show({
+          type: 'success',
+          text1: 'Flag Set!',
+        });
+      }).catch((err) => {
+        Alert.alert('Error', 'Unable to set flag in Db!');
+      });
+    } catch(err) {
+      Toast.show({
+        type: 'error',
+        text1: 'Setting Flag to DB Failed',
+        text2: err.message,
+      });
+    }
+  }
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>

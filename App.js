@@ -161,7 +161,7 @@ function AuthenticatedTabbedNavigator() {
       <Tab.Screen name="Edit Profile" component={ProfileScreenDecider} />
       <Tab.Screen name="My Orders" component={MyOrders} />
       <Tab.Screen name="Saved Addresses" component={SavedAddresses} />
-      <Tab.Screen name="Auth" component={LoginStackNavigatorComponent} options={{ tabBarItemStyle: { display: 'none' } }} />
+      <Tab.Screen name="Auth" component={LoginStackNavigatorComponent} options={{ tabBarItemStyle: { display: 'none' } }} />  
     </Tab.Navigator>
   );
 }

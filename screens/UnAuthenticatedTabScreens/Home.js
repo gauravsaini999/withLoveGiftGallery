@@ -15,8 +15,8 @@ export default function HomeScreen() {
   const { history, push, reset, initPaths } = useNavigationHistory();
   const navigation = useNavigation();
 
-  const { logoutFn, loginFn, isLoggedIn, reset: resetAuthUser } = useAuthenticationStateSlice();
-  const { firebaseConfig, setApp, setAuth, app, auth, setDb } = useFirebaseInit();
+  const { logoutFn, loginFn, isLoggedIn, reset: resetAuthUser, userObj } = useAuthenticationStateSlice();
+  const { firebaseConfig, setApp, setAuth, app, auth, setDb, db } = useFirebaseInit();
 
   const [firebaseInitialized, setFirebaseInitialized] = React.useState(false);
 
@@ -53,21 +53,11 @@ export default function HomeScreen() {
     }
   }, []);
 
-    React.useEffect(() => {
-      if (initPaths.length) {
-        console.log("<<<< Init Paths Array: ", initPaths);
-      }
-    }, [initPaths])
-
   React.useEffect(() => {
-    loadFirebase();
-  }, []);
-
-  React.useEffect(() => {
-    if (Object.keys(app).length && !Object.keys(auth).length) {
-      loadAuth();
+    if (initPaths.length) {
+      console.log("<<<< Init Paths Array: ", initPaths);
     }
-  }, [app]);
+  }, [initPaths])
 
   async function loadFirebase() {
     const { initializeApp, getApps, getApp } = await import('firebase/app');
@@ -75,6 +65,12 @@ export default function HomeScreen() {
     setApp(app);
     setFirebaseInitialized(true);
   }
+
+  React.useEffect(() => {
+    if (!userObj) {
+      loadFirebase();
+    }
+  }, []);
 
   const loadAuth = async () => {
     const { initializeAuth, getReactNativePersistence } = await import('firebase/auth');
@@ -90,6 +86,12 @@ export default function HomeScreen() {
   };
 
   React.useEffect(() => {
+    if (!userObj && Object.keys(app).length && !Object.keys(auth).length) {
+      loadAuth();
+    }
+  }, [app]);
+
+  React.useEffect(() => {
     const called = async () => {
       const { onAuthStateChanged } = await import('firebase/auth');
       onAuthStateChanged(auth, (user) => {
@@ -99,7 +101,7 @@ export default function HomeScreen() {
         }
       });
     }
-    if (Object.keys(auth).length && !isLoggedIn) {
+    if (!userObj && Object.keys(auth).length && !isLoggedIn) {
       called();
     }
   }, [auth])
@@ -117,7 +119,7 @@ export default function HomeScreen() {
         console.log("Error while getting db instance: ", err);
       }
     }
-    if (Object.keys(app).length && Object.keys(auth).length) {
+    if (Object.keys(app).length && Object.keys(auth).length && !Object.keys(db).length) {
       getDb();
     }
   }, [app, auth])

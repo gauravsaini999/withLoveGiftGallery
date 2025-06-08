@@ -4,20 +4,24 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 
 export const useAuthenticationStateSlice = create((set, get) => ({
     isLoggedIn: false,
+    phoneAuth: 'not-done',
     userObj: null,
-    loginFn: (userObj) => set((state) => {
+    loginFn: ({ userObj, phoneAuth }) => set((state) => {
         return {
             isLoggedIn: true,
-            userObj
+            userObj,
+            phoneAuth
         }
     }),
     logoutFn: () => set((state) => ({
         isLoggedIn: false,
-        userObj: null
+        userObj: null,
+        phoneAuth: 'not-done'
     })),
     reset: () => set((state) => ({
         isLoggedIn: false,
-        userObj: null
+        userObj: null,
+        phoneAuth: 'not-done'
     }))
 }))
 // ,

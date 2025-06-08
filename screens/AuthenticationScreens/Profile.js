@@ -150,7 +150,7 @@ const ProfileScreen = () => {
           text1: 'Verify Your Mobile Number!',
           text2: 'Please link your mobile number with your account.',
         });
-        setPhoneSignUp(true);
+        navigation.navigate('Auth', { screen: 'Phone Link' });
       }
     } catch (err) {
       Toast.show({
@@ -170,7 +170,7 @@ const ProfileScreen = () => {
       await signInWithEmailAndPassword(auth, values.username, values.password);
       const currentUser = auth.currentUser;
       if (currentUser) {
-        loginFn(currentUser);
+        loginFn({ userObj: currentUser, phoneAuth: 'not-done' });
         reset();
         setProfilePress(true);
         function cb() {
@@ -193,7 +193,6 @@ const ProfileScreen = () => {
   }
 
   const renderSignupLoginScreen = () => (
-    <View style={styles.container}>
       <LoginScreen
         logoImageSource={require('../../assets/logo2.png')}
         onLoginPress={() => handleSignup()}
@@ -217,7 +216,7 @@ const ProfileScreen = () => {
         }
         onPasswordChange={handleChange.bind(this, 'password')}
       />
-    </View>)
+  )
 
   const renderLoginScreen = () => (
     <LoginScreen
