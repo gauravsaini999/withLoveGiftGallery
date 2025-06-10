@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, ScrollView, Text, StatusBar, Platform, UIManager, Keyboard, TouchableWithoutFeedback, KeyboardAvoidingView, StyleSheet } from 'react-native';
+import { View, ScrollView, Button, Text, StatusBar, Platform, UIManager, Keyboard, TouchableWithoutFeedback, KeyboardAvoidingView, StyleSheet } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import LoginScreen from "react-native-login-screen";
 import { useFirebaseInit } from '../../zustand/useFirebaseInit';
@@ -10,6 +10,7 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVe
 import ProfileIconButton from '../../components/ProfileButton';
 import TextInput from "react-native-text-input-interactive";
 import Toast from 'react-native-toast-message';
+import { debounceAsync } from '../../shared/utilities';
 
 if (
   Platform.OS === 'android' &&
@@ -17,6 +18,8 @@ if (
 ) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
+
+
 
 const ProfileScreen = () => {
   const [enableSignUp, setEnableSignUp] = React.useState(false);
@@ -138,25 +141,38 @@ const ProfileScreen = () => {
       const userCredential = await createUserWithEmailAndPassword(auth, values.username, values.password);
       const user = userCredential.user;
       if (user) {
-        handleReset();
         await sendEmailVerification(user);
         Toast.show({
           type: 'success',
           text1: 'Verification Email Sent!',
           text2: 'Check your inbox to verify your account.',
+          position: 'top',
+          topOffset: 100,
         });
-        Toast.show({
-          type: 'Info',
-          text1: 'Verify Your Mobile Number!',
-          text2: 'Please link your mobile number with your account.',
-        });
-        navigation.navigate('Auth', { screen: 'Phone Link' });
+        debounceAsync(() => {
+          Toast.show({
+            type: 'info',
+            text1: 'Verify Your Mobile Number!',
+            text2: 'Please link your mobile number with your account.',
+            position: 'top',
+            topOffset: 100,
+          });
+        }, 500);
+        handleReset(debounceAsync(() => {
+          setProfilePress(false);
+          navigation.navigate('Auth', { screen: 'Phone Link' });
+        }, 500));
       }
     } catch (err) {
       Toast.show({
         type: 'error',
         text1: 'Signup Error',
         text2: err.message,
+        position: 'top',
+        topOffset: 100,
+        autoHide: false,
+        onPress: () => Toast.hide(),
+        props: { fontSize: 25, fontFamily: 'ComicSansMS' }
       });
       setValues((previous) => {
         return { ...previous, error: err.message }
@@ -179,6 +195,13 @@ const ProfileScreen = () => {
         handleReset(cb());
       }
     } catch (err) {
+      Toast.show({
+        type: 'error',
+        text1: 'Signin Error',
+        text2: err.message,
+        position: 'top',
+        topOffset: 100,
+      });
       setValues((previous) => {
         return { ...previous, error: err.message }
       });
@@ -193,36 +216,35 @@ const ProfileScreen = () => {
   }
 
   const renderSignupLoginScreen = () => (
-      <LoginScreen
-        logoImageSource={require('../../assets/logo2.png')}
-        onLoginPress={() => handleSignup()}
-        onSignupPress={() => setEnableSignUp(false)}
-        onEmailChange={handleChange.bind(this, 'username')}
-        loginButtonText={'Create an account'}
-        signupText={"Back to Sign In"}
-        // enablePasswordValidation
-        textInputChildren={
-          <View style={{ marginTop: 16 }}>
-            <TextInput
-              placeholder="Re-Password"
-              secureTextEntry={!visible}
-              onChangeText={handleChange.bind(this, 'repassword')}
-              enableIcon={true}
-              iconImageSource={visible ? require('../../assets/eye.png') : require('../../assets/eye-off.png')}
-              onIconPress={() => setVisible(v => !v)}
-            />
-            {values.error && <Text>{values.error}</Text>}
-          </View >
-        }
-        onPasswordChange={handleChange.bind(this, 'password')}
-      />
+    <LoginScreen
+      logoImageSource={require('../../assets/logo2.png')}
+      onLoginPress={handleSignup}
+      onSignupPress={() => { setEnableSignUp(false) }}
+      onEmailChange={handleChange.bind(this, 'username')}
+      loginButtonText={'Create an account'}
+      signupText={"Back to Sign In"}
+      // enablePasswordValidation
+      textInputChildren={
+        <View style={{ marginTop: 16 }}>
+          <TextInput
+            placeholder="Re-Password"
+            secureTextEntry={!visible}
+            onChangeText={handleChange.bind(this, 'repassword')}
+            enableIcon={true}
+            iconImageSource={visible ? require('../../assets/eye.png') : require('../../assets/eye-off.png')}
+            onIconPress={() => setVisible(v => !v)}
+          />
+        </View >
+      }
+      onPasswordChange={handleChange.bind(this, 'password')}
+    />
   )
 
   const renderLoginScreen = () => (
     <LoginScreen
       logoImageSource={require('../../assets/logo2.png')}
-      onLoginPress={() => { handleSignIn() }}
-      onSignupPress={() => setEnableSignUp(true)}
+      onLoginPress={handleSignIn}
+      onSignupPress={() => { setEnableSignUp(true) }}
       onEmailChange={handleChange.bind(this, 'username')}
       onPasswordChange={handleChange.bind(this, 'password')}
       emailTextInputProps={{

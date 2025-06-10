@@ -1,5 +1,6 @@
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as React from 'react';
+import * as Font from 'expo-font';
 import {
   StatusBar
 } from 'react-native';
@@ -29,6 +30,9 @@ import { useAuthenticationStateSlice } from './zustand/useAuthenticationStateSli
 import { Provider as PaperProvider } from 'react-native-paper';
 import IOSBackButton from './components/CustomBackButton';
 import IntraScreenBackButton from './components/IntraScreenBackButton';
+import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message';
+import { CustomToast } from './shared/utilities';
+
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -161,7 +165,7 @@ function AuthenticatedTabbedNavigator() {
       <Tab.Screen name="Edit Profile" component={ProfileScreenDecider} />
       <Tab.Screen name="My Orders" component={MyOrders} />
       <Tab.Screen name="Saved Addresses" component={SavedAddresses} />
-      <Tab.Screen name="Auth" component={LoginStackNavigatorComponent} options={{ tabBarItemStyle: { display: 'none' } }} />  
+      <Tab.Screen name="Auth" component={LoginStackNavigatorComponent} options={{ tabBarItemStyle: { display: 'none' } }} />
     </Tab.Navigator>
   );
 }
@@ -195,11 +199,19 @@ function getActiveRouteName(state) {
   return route.name || null;
 }
 
+const toastConfig = {
+  success: (props) => <CustomToast {...props} type="success" />,
+  error: (props) => <CustomToast {...props} type="error" />,
+  info: (props) => <CustomToast {...props} type="info" />,
+};
+
 export default function App() {
   const { push, pop, history, profilePress, setActiveRoute, insertInitPaths, activeRoute } = useNavigationHistory();
   const routeNameRef = React.useRef(null);
   const { isLoggedIn } = useAuthenticationStateSlice();
   const navigationRef = useNavigationContainerRef();
+  const [fontsLoaded, setFontsLoaded] = React.useState(false);
+
   enableScreens();
   // To check whether persistence is actually happening in zustand
   // AsyncStorage.getItem('firebase-storage').then((value) => {
@@ -208,6 +220,18 @@ export default function App() {
   console.log(activeRoute, '-------- active route ----------')
   console.log(profilePress, '----------Profile Press -------------')
   console.log(isLoggedIn, '----- is logged in ----------')
+
+  const loadFonts = async () => {
+    await Font.loadAsync({
+      'ComicSansMS': require('./assets/fonts/ComicSansMS.ttf'),
+    });
+    setFontsLoaded(true);
+  };
+
+  React.useEffect(() => {
+    loadFonts();
+  }, []);
+
   return (
     <PaperProvider>
       <SafeAreaProvider>
@@ -248,6 +272,8 @@ export default function App() {
           {isLoggedIn && profilePress ? <AuthenticatedTabbedNavigator /> : <UnauthenticatedTabbedNavigator />}
         </NavigationContainer>
         {/* </SafeAreaView> */}
+        {/* Toast MUST be outside navigation, and setRef is required if rendering inside portals */}
+        <Toast config={toastConfig} />
       </SafeAreaProvider>
     </PaperProvider>
   );
