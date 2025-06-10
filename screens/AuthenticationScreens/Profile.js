@@ -22,9 +22,15 @@ if (
 
 
 const ProfileScreen = () => {
+  const passwordFocusTime = React.useRef(0);
+  // const debounceTimeout = React.useRef(null);
+  const autofillThreshold = 50; // milliseconds
+  const { push, reset, setProfilePress } = useNavigationHistory();
+  const navigation = useNavigation();
+  const { auth } = useFirebaseInit();
+  const { loginFn, logoutFn } = useAuthenticationStateSlice();
   const [enableSignUp, setEnableSignUp] = React.useState(false);
   const [visible, setVisible] = React.useState(false);
-  const [phoneSignUp, setPhoneSignUp] = React.useState(false);
   const [values, setValues] = React.useState({
     username: '',
     password: '',
@@ -48,14 +54,6 @@ const ProfileScreen = () => {
   React.useEffect(() => {
     decider();
   }, [enableSignUp])
-
-  const passwordFocusTime = React.useRef(0);
-  // const debounceTimeout = React.useRef(null);
-  const autofillThreshold = 50; // milliseconds
-  const { history, push, reset, setProfilePress } = useNavigationHistory();
-  const navigation = useNavigation();
-  const { auth } = useFirebaseInit();
-  const { loginFn, isLoggedIn } = useAuthenticationStateSlice();
 
   useFocusEffect(
     React.useCallback(() => {
@@ -149,19 +147,9 @@ const ProfileScreen = () => {
           position: 'top',
           topOffset: 100,
         });
-        debounceAsync(() => {
-          Toast.show({
-            type: 'info',
-            text1: 'Verify Your Mobile Number!',
-            text2: 'Please link your mobile number with your account.',
-            position: 'top',
-            topOffset: 100,
-          });
-        }, 500);
-        handleReset(debounceAsync(() => {
-          setProfilePress(false);
-          navigation.navigate('Auth', { screen: 'Phone Link' });
-        }, 500));
+        debounceAsync(() => { }, 500);
+        logoutFn();
+        setEnableSignUp(false);
       }
     } catch (err) {
       Toast.show({
@@ -184,13 +172,42 @@ const ProfileScreen = () => {
     if (!validateInputs()) return;
     try {
       await signInWithEmailAndPassword(auth, values.username, values.password);
+      await auth.currentUser.reload();
       const currentUser = auth.currentUser;
       if (currentUser) {
-        loginFn({ userObj: currentUser, phoneAuth: 'not-done' });
+        loginFn({ userObj: currentUser });
         reset();
-        setProfilePress(true);
-        function cb() {
-          navigation.navigate('Edit Profile');
+        async function sendVerify() {
+          await sendEmailVerification(currentUser);
+          Toast.show({
+            type: 'success',
+            text1: 'Verification Email Sent Again!',
+            text2: 'Check your Inbox / Spam/ Junk to verify your account.',
+            position: 'top',
+            topOffset: 100,
+          });
+        }
+        async function cb() {
+          if (currentUser.emailVerified) {
+            const isPhoneLinked = currentUser.phoneNumber == undefined ? null : true;
+            if (!isPhoneLinked) {
+              Toast.show({
+                type: 'info',
+                text1: 'Verify Your Mobile Number!',
+                text2: 'Please link your mobile number with your account.',
+                position: 'top',
+                topOffset: 100,
+              });
+              navigation.navigate('Auth', { screen: 'Phone Link' });
+            }
+            else {
+              navigation.navigate('Home', { screen: 'Home Screen' })
+            }
+            setProfilePress(false);
+          }
+          else {
+            await sendVerify();
+          }
         }
         handleReset(cb());
       }

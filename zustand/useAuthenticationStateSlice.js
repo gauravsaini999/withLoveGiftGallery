@@ -6,22 +6,22 @@ export const useAuthenticationStateSlice = create((set, get) => ({
     isLoggedIn: false,
     phoneAuth: 'not-done',
     userObj: null,
-    loginFn: ({ userObj, phoneAuth }) => set((state) => {
+    loginFn: ({ userObj }) => set((state) => {
         return {
             isLoggedIn: true,
             userObj,
-            phoneAuth
+            ...state
         }
     }),
     logoutFn: () => set((state) => ({
         isLoggedIn: false,
         userObj: null,
-        phoneAuth: 'not-done'
+        ...state
     })),
     reset: () => set((state) => ({
         isLoggedIn: false,
         userObj: null,
-        phoneAuth: 'not-done'
+        ...state
     }))
 }))
 // ,

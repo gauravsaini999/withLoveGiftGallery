@@ -1,12 +1,11 @@
 import { useRef, useState, startTransition } from 'react';
-import { ScrollView, TouchableWithoutFeedback, KeyboardAvoidingView, Platform, Alert, Keyboard } from 'react-native';
+import { ScrollView, TouchableWithoutFeedback, KeyboardAvoidingView, Platform, Alert, Keyboard, StatusBar } from 'react-native';
 import { useFirebaseInit } from '../../zustand/useFirebaseInit';
 import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha';
 import LoginScreen from "react-native-login-screen";
 import Toast from 'react-native-toast-message';
 import ModalLoader from '../../components/ModalLoader';
 import { useAuthenticationStateSlice } from '../../zustand/useAuthenticationStateSlice';
-import { debounceAsync } from '../../shared/utilities';
 
 export default function LinkPhone({ navigation }) {
   const recaptchaVerifier = useRef(null);
@@ -14,7 +13,7 @@ export default function LinkPhone({ navigation }) {
   const [otp, setOtp] = useState('');
   const [verificationId, setVerificationId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { auth, db, setDb } = useFirebaseInit();
+  const { auth, db, firebaseConfig } = useFirebaseInit();
   const { userObj: user } = useAuthenticationStateSlice();
 
   const sendOtp = async () => {
@@ -102,7 +101,7 @@ export default function LinkPhone({ navigation }) {
           <ModalLoader visible={loading} />
           <FirebaseRecaptchaVerifierModal
             ref={recaptchaVerifier}
-            firebaseConfig={auth.app.options}
+            firebaseConfig={firebaseConfig}
           />
           <LoginScreen
             disableDivider
@@ -117,6 +116,7 @@ export default function LinkPhone({ navigation }) {
             emailPlaceholder="Phone Number (e.g. +1234567890)"
             passwordPlaceholder="OTP"
             enablePasswordValidation={false}
+            disableEmailValidation
           />
         </ScrollView>
       </KeyboardAvoidingView>
