@@ -13,7 +13,7 @@ export default function LinkPhone({ navigation }) {
   const [otp, setOtp] = useState('');
   const [verificationId, setVerificationId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { auth, db, firebaseConfig } = useFirebaseInit();
+  const { app, auth, db } = useFirebaseInit();
   const { userObj: user } = useAuthenticationStateSlice();
 
   const sendOtp = async () => {
@@ -56,7 +56,6 @@ export default function LinkPhone({ navigation }) {
         text1: 'Phone Linked!',
       });
       await addFlagToUserDb();
-      await navigation.navigate('Home', { screen: 'Home Screen' }); // or navigate elsewhere
     } catch (err) {
       Toast.show({
         type: 'error',
@@ -78,6 +77,7 @@ export default function LinkPhone({ navigation }) {
           type: 'success',
           text1: 'Flag Set!',
         });
+        navigation.navigate('Home', { screen: 'Home Screen' }); // or navigate elsewhere
       }).catch((err) => {
         Alert.alert('Error', 'Unable to set flag in Db!');
       });
@@ -101,13 +101,14 @@ export default function LinkPhone({ navigation }) {
           <ModalLoader visible={loading} />
           <FirebaseRecaptchaVerifierModal
             ref={recaptchaVerifier}
-            firebaseConfig={firebaseConfig}
+            firebaseConfig={app.options}
           />
           <LoginScreen
             disableDivider
             disableSocialButtons
             disableForgotPassword
-            disableSignup
+            onSignupPress={() => sendOtp()}
+            signupText='Resend OTP'
             logoImageSource={require('../../assets/logo2.png')}
             onLoginPress={verificationId ? linkPhoneNumber : sendOtp}
             loginButtonText={verificationId ? 'Confirm & Link Phone' : 'Send OTP'}
