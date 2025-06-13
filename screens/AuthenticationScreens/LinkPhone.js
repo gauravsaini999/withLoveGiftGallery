@@ -14,7 +14,7 @@ export default function LinkPhone({ navigation }) {
   const [verificationId, setVerificationId] = useState(null);
   const [loading, setLoading] = useState(false);
   const { app, auth, db } = useFirebaseInit();
-  const { userObj: user } = useAuthenticationStateSlice();
+  const { userObj: user, setPhoneAuth } = useAuthenticationStateSlice();
 
   const sendOtp = async () => {
     const { PhoneAuthProvider } = await import('firebase/auth');
@@ -102,6 +102,7 @@ export default function LinkPhone({ navigation }) {
           onPress: () => Toast.hide(),
           props: { fontSize: 25, fontFamily: 'ComicSansMS' }
         });
+        setPhoneAuth(true);
         navigation.navigate('Home', { screen: 'Home Screen' }); // or navigate elsewhere
       }).catch((err) => {
         Alert.alert('Error', 'Unable to set flag in Db!');

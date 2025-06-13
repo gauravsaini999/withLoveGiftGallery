@@ -14,10 +14,8 @@ export default function HomeScreen() {
   const { history, push, reset: resetNavigationHistory, initPaths } = useNavigationHistory();
   const navigation = useNavigation();
 
-  const { loginFn, isLoggedIn, reset: resetAuthUser, userObj } = useAuthenticationStateSlice();
+  const { loginFn, isLoggedIn, userObj } = useAuthenticationStateSlice();
   const { firebaseConfig, setApp, setAuth, app, auth, setDb, db } = useFirebaseInit();
-
-  const [firebaseInitialized, setFirebaseInitialized] = React.useState(false);
 
   const [maxWidth, setMaxWidth] = React.useState(0);
   const [maxHeight, setMaxHeight] = React.useState(0);
@@ -60,7 +58,6 @@ export default function HomeScreen() {
     const { initializeApp, getApps, getApp } = await import('firebase/app');
     let app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     setApp(app);
-    setFirebaseInitialized(true);
   }
 
   React.useEffect(() => {
@@ -118,24 +115,25 @@ export default function HomeScreen() {
         const db_ = getFirestore(app);
         if (db_) {
           setDb(db_)
+          const { doc, getDoc } = await import('firebase/firestore');
+          const profileRef = doc(db, 'users', userObj.uid); // adjust path if needed
+          const profileSnap = await getDoc(profileRef);
+          if (profileSnap.exists()) {
+            const profileData = profileSnap.data();
+            if (profileData['phoneLinked']) {
+              loginFn({ userObj: userObj })
+            } 
+          }
         }
       }
       catch (err) {
         console.log("Error while getting db instance: ", err);
       }
     }
-    if (Object.keys(app).length && Object.keys(auth).length && !Object.keys(db).length) {
+    if (Object.keys(app).length && Object.keys(auth).length) {
       getDb();
     }
   }, [app, auth])
-
-  if (!firebaseInitialized) {
-    return (
-      <View>
-        <Text>Loading Firebase...</Text>
-      </View>
-    );
-  }
 
   return (
     <ScrollView

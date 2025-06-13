@@ -205,13 +205,12 @@ const ProfileScreen = () => {
             else {
               navigation.navigate('Home', { screen: 'Home Screen' })
             }
-            setProfilePress(false);
           }
           else {
             await sendVerify();
           }
         }
-        handleReset(cb());
+        handleReset(cb);
       }
     } catch (err) {
       Toast.show({
@@ -230,7 +229,7 @@ const ProfileScreen = () => {
   const handleReset = (cb) => {
     decider();
     if (cb) {
-      cb
+      cb()
     }
   }
 
