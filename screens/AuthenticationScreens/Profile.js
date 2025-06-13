@@ -174,8 +174,10 @@ const ProfileScreen = () => {
       await signInWithEmailAndPassword(auth, values.username, values.password);
       await auth.currentUser.reload();
       const currentUser = auth.currentUser;
+      console.log("user = ", currentUser);
       if (currentUser) {
         loginFn({ userObj: currentUser });
+        console.log("SAVING CURRENT USER IN PROFILE .JS FILE")
         reset();
         async function sendVerify() {
           await sendEmailVerification(currentUser);

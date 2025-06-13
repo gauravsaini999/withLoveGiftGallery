@@ -17,7 +17,7 @@ export default function LinkPhone({ navigation }) {
   const { userObj: user } = useAuthenticationStateSlice();
 
   const sendOtp = async () => {
-    const { PhoneAuthProvider} = await import('firebase/auth');
+    const { PhoneAuthProvider } = await import('firebase/auth');
     try {
       startTransition(() => {
         setLoading(true);
@@ -29,12 +29,22 @@ export default function LinkPhone({ navigation }) {
         type: 'success',
         text1: 'OTP Sent',
         text2: 'Check your phone.',
+        position: 'top',
+        topOffset: 100,
+        autoHide: false,
+        onPress: () => Toast.hide(),
+        props: { fontSize: 25, fontFamily: 'ComicSansMS' }
       });
     } catch (err) {
       Toast.show({
         type: 'error',
         text1: 'Failed to send OTP',
         text2: err.message,
+        position: 'top',
+        topOffset: 100,
+        autoHide: false,
+        onPress: () => Toast.hide(),
+        props: { fontSize: 25, fontFamily: 'ComicSansMS' }
       });
     } finally {
       startTransition(() => {
@@ -44,7 +54,7 @@ export default function LinkPhone({ navigation }) {
   };
 
   const linkPhoneNumber = async () => {
-    const { PhoneAuthProvider, linkWithCredential } = await import ('firebase/auth');
+    const { PhoneAuthProvider, linkWithCredential } = await import('firebase/auth');
     try {
       startTransition(() => {
         setLoading(true);
@@ -54,6 +64,11 @@ export default function LinkPhone({ navigation }) {
       Toast.show({
         type: 'success',
         text1: 'Phone Linked!',
+        position: 'top',
+        topOffset: 100,
+        autoHide: false,
+        onPress: () => Toast.hide(),
+        props: { fontSize: 25, fontFamily: 'ComicSansMS' }
       });
       await addFlagToUserDb();
     } catch (err) {
@@ -61,6 +76,11 @@ export default function LinkPhone({ navigation }) {
         type: 'error',
         text1: 'Linking failed',
         text2: err.message,
+        position: 'top',
+        topOffset: 100,
+        autoHide: false,
+        onPress: () => Toast.hide(),
+        props: { fontSize: 25, fontFamily: 'ComicSansMS' }
       });
     } finally {
       startTransition(() => {
@@ -72,20 +92,30 @@ export default function LinkPhone({ navigation }) {
   const addFlagToUserDb = async () => {
     const { doc, setDoc } = await import('firebase/firestore');
     try {
-      await setDoc(doc(db, 'users', user.uid), { phoneLinked: true }).then(() => {
+      await setDoc(doc(db, 'users', JSON.parse(user)['uid']), { phoneLinked: true }).then(() => {
         Toast.show({
           type: 'success',
           text1: 'Flag Set!',
+          position: 'top',
+          topOffset: 100,
+          autoHide: false,
+          onPress: () => Toast.hide(),
+          props: { fontSize: 25, fontFamily: 'ComicSansMS' }
         });
         navigation.navigate('Home', { screen: 'Home Screen' }); // or navigate elsewhere
       }).catch((err) => {
         Alert.alert('Error', 'Unable to set flag in Db!');
       });
-    } catch(err) {
+    } catch (err) {
       Toast.show({
         type: 'error',
         text1: 'Setting Flag to DB Failed',
         text2: err.message,
+        position: 'top',
+        topOffset: 100,
+        autoHide: false,
+        onPress: () => Toast.hide(),
+        props: { fontSize: 25, fontFamily: 'ComicSansMS' }
       });
     }
   }

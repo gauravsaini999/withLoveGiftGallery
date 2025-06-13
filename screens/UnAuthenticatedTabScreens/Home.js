@@ -7,23 +7,20 @@ import MyCarousel from "../../shared/carousel";
 import IOSBackButton from "../../components/CustomBackButton";
 import { useNavigationHistory } from "../../zustand/useNavigationHistory";
 import { useFirebaseInit } from "../../zustand/useFirebaseInit";
-import { signOut } from 'firebase/auth';
 import { useAuthenticationStateSlice } from '../../zustand/useAuthenticationStateSlice';
 import { colors } from "../../shared/colors";
 
 export default function HomeScreen() {
-  const { history, push, reset, initPaths } = useNavigationHistory();
+  const { history, push, reset: resetNavigationHistory, initPaths } = useNavigationHistory();
   const navigation = useNavigation();
 
-  const { logoutFn, loginFn, isLoggedIn, reset: resetAuthUser, userObj } = useAuthenticationStateSlice();
+  const { loginFn, isLoggedIn, reset: resetAuthUser, userObj } = useAuthenticationStateSlice();
   const { firebaseConfig, setApp, setAuth, app, auth, setDb, db } = useFirebaseInit();
 
   const [firebaseInitialized, setFirebaseInitialized] = React.useState(false);
 
   const [maxWidth, setMaxWidth] = React.useState(0);
   const [maxHeight, setMaxHeight] = React.useState(0);
-
-  const [err, setErr] = React.useState('');
 
   const updateSize = ({ nativeEvent }) => {
     const { width, height } = nativeEvent.layout;
@@ -49,7 +46,7 @@ export default function HomeScreen() {
 
   React.useEffect(() => {
     return () => {
-      reset();
+      resetNavigationHistory();
     }
   }, []);
 
@@ -93,15 +90,23 @@ export default function HomeScreen() {
 
   React.useEffect(() => {
     const called = async () => {
-      const { onAuthStateChanged } = await import('firebase/auth');
-      onAuthStateChanged(auth, (user) => {
-        console.log("user = ", user);
-        if (user) {
-          loginFn(user);
-        }
-      });
+      if (!isLoggedIn && !userObj) {
+        console.log("NOT LOGGED IN AND NO USER OBJ IN ZUSTAND STATE")
+        const { onAuthStateChanged } = await import('firebase/auth');
+        onAuthStateChanged(auth, (user) => {
+          console.log("user = ", user);
+          if (user) {
+            loginFn({ userObj: user });
+          }
+        });
+      }
+      else {
+        console.log("ALREADY LOGGED IN AND JUST REFRESHING THE ZUSTAND USER STATE BY RELOADING")
+        await auth.currentUser.reload();
+        loginFn({ userObj: auth.currentUser  })
+      }
     }
-    if (!userObj && Object.keys(auth).length && !isLoggedIn) {
+    if (Object.keys(auth).length) {
       called();
     }
   }, [auth])
@@ -124,38 +129,6 @@ export default function HomeScreen() {
     }
   }, [app, auth])
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      const currentUser = auth?.currentUser;
-      if (!currentUser) {
-        logoutFn();
-      }
-    } catch (errMsg) {
-      setErr('Error while signing out: ', errMsg);
-      console.log('Error while signing out: ', errMsg);
-    }
-  };
-
-  // useFocusEffect(
-  //   React.useCallback(() => {
-  //     let unsubscribe = null;
-  //     async function callable() {
-  //       const { onAuthStateChanged } = await import('firebase/auth');
-  //       unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-  //         if (currentUser) {
-  //           const parent = navigation.getParent();
-  //           parent.setOptions({
-  //             headerRight: () => (<TouchableOpacity onPress={handleLogout} activeOpacity={0.7}>
-  //               <Ionicons name="log-out-outline" size={24} color="#333" />
-  //             </TouchableOpacity>)
-  //           })
-  //         }
-  //       });
-  //     }
-  //     callable();
-  //   }, [auth])
-  // )
   if (!firebaseInitialized) {
     return (
       <View>

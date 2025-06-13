@@ -28,9 +28,8 @@ import { colors } from './shared/colors';
 import { useNavigationHistory } from './zustand/useNavigationHistory';
 import { useAuthenticationStateSlice } from './zustand/useAuthenticationStateSlice';
 import { Provider as PaperProvider } from 'react-native-paper';
-import IOSBackButton from './components/CustomBackButton';
 import IntraScreenBackButton from './components/IntraScreenBackButton';
-import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message';
+import Toast from 'react-native-toast-message';
 import { CustomToast } from './shared/utilities';
 
 

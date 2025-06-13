@@ -7,6 +7,7 @@ export const useAuthenticationStateSlice = create((set, get) => ({
     phoneAuth: 'not-done',
     userObj: null,
     loginFn: ({ userObj }) => set((state) => {
+        console.log(userObj, 'userObj being set in useSlice')
         return {
             isLoggedIn: true,
             userObj,
