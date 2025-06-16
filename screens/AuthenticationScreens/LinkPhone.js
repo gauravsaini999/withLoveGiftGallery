@@ -1,4 +1,4 @@
-import { useRef, useState, startTransition } from 'react';
+import { useRef, useState, startTransition, useEffect } from 'react';
 import { ScrollView, TouchableWithoutFeedback, KeyboardAvoidingView, Platform, Alert, Keyboard, StatusBar } from 'react-native';
 import { useFirebaseInit } from '../../zustand/useFirebaseInit';
 import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha';
@@ -6,8 +6,12 @@ import LoginScreen from "react-native-login-screen";
 import Toast from 'react-native-toast-message';
 import ModalLoader from '../../components/ModalLoader';
 import { useAuthenticationStateSlice } from '../../zustand/useAuthenticationStateSlice';
+import { useNavigationHistory } from '../../zustand/useNavigationHistory';
+import eventBus from '../../shared/eventBus';
+import { useNavigation } from '@react-navigation/native';
 
-export default function LinkPhone({ navigation }) {
+export default function LinkPhone() {
+  const navigation = useNavigation();
   const recaptchaVerifier = useRef(null);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
@@ -15,6 +19,22 @@ export default function LinkPhone({ navigation }) {
   const [loading, setLoading] = useState(false);
   const { app, auth, db } = useFirebaseInit();
   const { userObj: user, setPhoneAuth } = useAuthenticationStateSlice();
+  const { setProfilePress } = useNavigationHistory();
+
+  useEffect(() => {
+    const onTabChanged = ({ completed }) => {
+      console.log('Inside use Effect for screen change', completed)
+      if (completed) {
+        console.log('now changing screen')
+        navigation.navigate('Home', { screen: 'Home Screen' });
+        eventBus.off('tabChangedComplete', onTabChanged);
+      }
+    }
+    eventBus.on('tabChangedComplete', onTabChanged);
+    return () => {
+      eventBus.off('tabChangedComplete', onTabChanged);
+    }
+  }, []);
 
   const sendOtp = async () => {
     const { PhoneAuthProvider } = await import('firebase/auth');
@@ -117,7 +137,7 @@ export default function LinkPhone({ navigation }) {
           props: { fontSize: 25, fontFamily: 'ComicSansMS' }
         });
         setPhoneAuth(true);
-        navigation.navigate('Home', { screen: 'Home Screen' }); // or navigate elsewhere
+        setProfilePress(false);
       }).catch(async (err) => {
         Alert.alert('Error', 'Unable to set flag in Db!', err);
         await deleteUser(user)

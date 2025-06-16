@@ -11,7 +11,7 @@ export default function IOSBackButton() {
   return (
     <TouchableOpacity onPress={() => {
       if (history.length > 1)
-          navigation.navigate(history[history.length - 2])
+        navigation.navigate(history[history.length - 2])
       else if (history.length <= 1) {
         setProfilePress(false);
         // navigation.navigate('Home', { screen: 'Home Screen' });

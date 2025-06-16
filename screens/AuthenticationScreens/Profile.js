@@ -25,11 +25,11 @@ const ProfileScreen = () => {
   const passwordFocusTime = React.useRef(0);
   // const debounceTimeout = React.useRef(null);
   const autofillThreshold = 50; // milliseconds
-  const { push, reset, setProfilePress } = useNavigationHistory();
+  const { push, reset } = useNavigationHistory();
   const navigation = useNavigation();
   const { auth, db } = useFirebaseInit();
   const { loginFn, logoutFn } = useAuthenticationStateSlice();
-  const [enableSignUp, setEnableSignUp] = React.useState(false);
+  const [enableSignUp, setEnableSignUp] = React.useState({ value: false, from: "auth init"});
   const [visible, setVisible] = React.useState(false);
   const [values, setValues] = React.useState({
     username: '',
@@ -39,7 +39,7 @@ const ProfileScreen = () => {
   });
 
   const decideNEmpty = () => {
-    if (enableSignUp) {
+    if (enableSignUp["value"]) {
       setValues({
         username: '', password: '', repassword: '', error: ''
       })
@@ -48,12 +48,15 @@ const ProfileScreen = () => {
       setValues({
         username: '', password: '', error: ''
       })
+      if (enableSignUp['from'] === "sign up flow") {
+
+      }
     }
   }
 
   React.useEffect(() => {
     decideNEmpty();
-  }, [enableSignUp])
+  }, [enableSignUp["value"]])
 
   useFocusEffect(
     React.useCallback(() => {
@@ -73,6 +76,7 @@ const ProfileScreen = () => {
         headerLeft: () => <IOSBackButton />,
       })
     }, [navigation]))
+
 
   const handleChange = (inputIdentifier, enteredValue) => {
     setValues((prev) => {
@@ -133,7 +137,7 @@ const ProfileScreen = () => {
     return true;
   };
 
-  const handleSignup = async () => {
+  const handleSignup = async() => {
     const validated = validateInputs();
     if (!validated) return;
     const { deleteUser } = await import('firebase/auth');
@@ -141,42 +145,44 @@ const ProfileScreen = () => {
       await createUserWithEmailAndPassword(auth, values.username, values.password).then(async () => {
         const user = await auth.currentUser;
         if (user) {
-          const { doc, setDoc } = await import('firebase/firestore');
+          const { doc, setDoc } = await import('firebase/firestore')
           await setDoc(doc(db, 'users', user.uid), { email: values.username, createdAt: new Date() }).then(() => {
-            console.log('Success', 'Your profile has been updated!');
+            console.log('Success', 'Your profile has been updated!')
           }).catch((error) => {
             deleteUser(user)
               .then(() => {
-                console.log('User deleted');
+                console.log('User deleted')
               })
               .catch((err) => {
-                console.error('Error deleting user:', err);
+                console.error('Error deleting user:', err)
               });
-            console.log('Error in updating db while signup', error.message);
+            console.log('Error in updating db while signup', error.message)
           });
-          await sendEmailVerification(user).then(() => {
-            console.log("logging out after signup"); logoutFn();
-            Toast.show({
-              type: 'success',
-              text1: 'Verification Email Sent!',
-              text2: 'Check your inbox to verify your account.',
-              position: 'top',
-              topOffset: 100,
-              autoHide: false,
-              onPress: () => Toast.hide(),
-              props: { fontSize: 25, fontFamily: 'ComicSansMS' }
-            });
-            setEnableSignUp(false);
-          }).catch((err) => {
-            console.log(err, 'error while logging out !!');
-            deleteUser(user)
-              .then(() => {
-                console.log('User deleted');
+          async function cb() {
+            await sendEmailVerification(user).then(() => {
+              Toast.show({
+                type: 'success',
+                text1: 'Verification Email Sent!',
+                text2: 'Check your inbox to verify your account.',
+                position: 'top',
+                topOffset: 100,
+                autoHide: false,
+                onPress: () => Toast.hide(),
+                props: { fontSize: 25, fontFamily: 'ComicSansMS' }
               })
-              .catch((err) => {
-                console.error('Error deleting user:', err);
-              });
-          })
+            }).catch((err) => {
+              console.log(err, 'error while logging out !!');
+              deleteUser(user)
+                .then(() => {
+                  console.log('User deleted');
+                })
+                .catch((err) => {
+                  console.error('Error deleting user:', err);
+                })
+            })
+          }
+          setEnableSignUp({ value: false, from: "sign up flow" });
+          handleReset(cb);
         }
       });
     } catch (err) {
@@ -190,7 +196,7 @@ const ProfileScreen = () => {
         onPress: () => Toast.hide(),
         props: { fontSize: 25, fontFamily: 'ComicSansMS' }
       });
-      if (user)
+      if (user) {
         deleteUser(user)
           .then(() => {
             console.log('User deleted');
@@ -198,20 +204,22 @@ const ProfileScreen = () => {
           .catch((err) => {
             console.error('Error deleting user:', err);
           });
+      }
       setValues((previous) => {
         return { ...previous, error: err.message }
       });
     }
   };
 
-  const handleSignIn = async () => {
+  const handleSignIn = async() => {
+    console.log('HANDLE SIGN IN RAN');
     const validated = validateInputs();
     if (!validated) return;
     try {
       await signInWithEmailAndPassword(auth, values.username, values.password);
       await auth.currentUser.reload();
       const currentUser = auth.currentUser;
-      console.log("user = ", currentUser);
+      console.log("From handleSignIn : user = ", currentUser);
       if (currentUser) {
         loginFn({ userObj: currentUser });
         console.log("SAVING CURRENT USER IN PROFILE .JS FILE")
@@ -273,8 +281,8 @@ const ProfileScreen = () => {
   const renderSignupLoginScreen = () => (
     <LoginScreen
       logoImageSource={require('../../assets/logo2.png')}
-      onLoginPress={() => { handleSignup() }}
-      onSignupPress={() => { setEnableSignUp(false) }}
+      onLoginPress={handleSignup}
+      onSignupPress={() => { setEnableSignUp({ value: false, from: "sign up button press" }) }}
       onEmailChange={handleChange.bind(this, 'username')}
       loginButtonText={'Create an account'}
       signupText={"Back to Sign In"}
@@ -298,20 +306,22 @@ const ProfileScreen = () => {
   const renderLoginScreen = () => (
     <LoginScreen
       logoImageSource={require('../../assets/logo2.png')}
-      onLoginPress={() => { handleSignIn() }}
-      onSignupPress={() => { setEnableSignUp(true) }}
+      onLoginPress={handleSignIn}
+      onSignupPress={() => setEnableSignUp({ value: true, from: "sign up button press" })}
       onEmailChange={handleChange.bind(this, 'username')}
       onPasswordChange={handleChange.bind(this, 'password')}
       emailTextInputProps={{
         autoComplete: "email",
         textContentType: "emailAddress",
         returnKeyType: "next",
+        value: values['username']
       }}
       passwordTextInputProps={{
         autoComplete: "password",
         textContentType: "password",
         returnKeyType: "done",
         onFocus: handlePasswordFocus,
+        value: values['password']
       }}
     />
   );
@@ -325,7 +335,7 @@ const ProfileScreen = () => {
         <ScrollView contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled">
           <StatusBar barStyle="light-content" />
-          {enableSignUp ? renderSignupLoginScreen() : renderLoginScreen()}
+          {enableSignUp["value"] ? renderSignupLoginScreen() : renderLoginScreen()}
         </ScrollView>
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>

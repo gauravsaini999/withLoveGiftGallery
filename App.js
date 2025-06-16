@@ -31,6 +31,7 @@ import { Provider as PaperProvider } from 'react-native-paper';
 import IntraScreenBackButton from './components/IntraScreenBackButton';
 import Toast from 'react-native-toast-message';
 import { CustomToast } from './shared/utilities';
+import eventBus from './shared/eventBus';
 
 
 const Tab = createBottomTabNavigator();
@@ -114,11 +115,6 @@ function UnauthenticatedTabbedNavigator() {
 function AuthenticatedTabbedNavigator() {
   const { setProfilePress, reset } = useNavigationHistory();
   const navigation = useNavigation();
-  useFocusEffect(
-    React.useCallback(() => {
-      navigation.navigate('My Orders');
-    }, [])
-  )
   return (
     <Tab.Navigator
       initialRouteName='Edit Profile'
@@ -230,6 +226,14 @@ export default function App() {
   React.useEffect(() => {
     loadFonts();
   }, []);
+
+  React.useEffect(() => {
+    console.log('triggered !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+    if (!profilePress && isLoggedIn) {
+      console.log('inside use effect for tab change complete event emitter function')
+      eventBus.emit("tabChangedComplete", { completed: true })
+    }
+  }, [profilePress, isLoggedIn])
 
   return (
     <PaperProvider>

@@ -81,8 +81,10 @@ export const useNavigationHistory = create((set) => ({
   setActiveRoute: (screen) => set((state) => {
     return { ...state, activeRoute: screen }
   }),
-  setProfilePress: (bool) => set((state) => ({
-    ...state,
-    profilePress: bool
-  }))
+  setProfilePress: (bool) => set((state) => {
+    return {
+      ...state,
+      profilePress: bool
+    }
+  })
 }));
