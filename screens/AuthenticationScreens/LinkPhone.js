@@ -103,10 +103,10 @@ export default function LinkPhone({ navigation }) {
   };
 
   const addFlagToUserDb = async () => {
-    const { doc, setDoc } = await import('firebase/firestore');
+    const { doc, updateDoc } = await import('firebase/firestore');
     const { deleteUser } = await import('firebase/auth');
     try {
-      await setDoc(doc(db, 'users', user.uid), { phoneLinked: true }).then(() => {
+      await updateDoc(doc(db, 'users', user.uid), { phoneLinked: true }).then(() => {
         Toast.show({
           type: 'success',
           text1: 'Flag Set!',
