@@ -54,23 +54,36 @@ export default function LinkPhone({ navigation }) {
   };
 
   const linkPhoneNumber = async () => {
-    const { PhoneAuthProvider, linkWithCredential } = await import('firebase/auth');
+    const { PhoneAuthProvider, linkWithCredential, deleteUser } = await import('firebase/auth');
     try {
       startTransition(() => {
         setLoading(true);
       })
       const credential = PhoneAuthProvider.credential(verificationId, otp);
-      await linkWithCredential(auth.currentUser, credential);
-      Toast.show({
-        type: 'success',
-        text1: 'Phone Linked!',
-        position: 'top',
-        topOffset: 100,
-        autoHide: false,
-        onPress: () => Toast.hide(),
-        props: { fontSize: 25, fontFamily: 'ComicSansMS' }
-      });
-      await addFlagToUserDb();
+      await linkWithCredential(auth.currentUser, credential).then(async () => {
+        await addFlagToUserDb().then(() => {
+          Toast.show({
+            type: 'success',
+            text1: 'Phone Linked!',
+            position: 'top',
+            topOffset: 100,
+            autoHide: false,
+            onPress: () => Toast.hide(),
+            props: { fontSize: 25, fontFamily: 'ComicSansMS' }
+          });
+        }).catch(async (err) => {
+          console.log(err, 'error in updating db so deleting the user thus created !!')
+          await deleteUser(user)
+            .then(() => {
+              console.log('User deleted');
+            })
+            .catch((err) => {
+              console.error('Error deleting user:', err);
+            });
+        });
+
+      })
+
     } catch (err) {
       Toast.show({
         type: 'error',
@@ -91,8 +104,9 @@ export default function LinkPhone({ navigation }) {
 
   const addFlagToUserDb = async () => {
     const { doc, setDoc } = await import('firebase/firestore');
+    const { deleteUser } = await import('firebase/auth');
     try {
-      await setDoc(doc(db, 'users', JSON.parse(user)['uid']), { phoneLinked: true }).then(() => {
+      await setDoc(doc(db, 'users', user.uid), { phoneLinked: true }).then(() => {
         Toast.show({
           type: 'success',
           text1: 'Flag Set!',
@@ -104,8 +118,15 @@ export default function LinkPhone({ navigation }) {
         });
         setPhoneAuth(true);
         navigation.navigate('Home', { screen: 'Home Screen' }); // or navigate elsewhere
-      }).catch((err) => {
-        Alert.alert('Error', 'Unable to set flag in Db!');
+      }).catch(async (err) => {
+        Alert.alert('Error', 'Unable to set flag in Db!', err);
+        await deleteUser(user)
+          .then(() => {
+            console.log('User deleted');
+          })
+          .catch((err) => {
+            console.error('Error deleting user:', err);
+          });
       });
     } catch (err) {
       Toast.show({
@@ -118,6 +139,13 @@ export default function LinkPhone({ navigation }) {
         onPress: () => Toast.hide(),
         props: { fontSize: 25, fontFamily: 'ComicSansMS' }
       });
+      await deleteUser(user)
+        .then(() => {
+          console.log('User deleted');
+        })
+        .catch((err) => {
+          console.error('Error deleting user:', err);
+        });
     }
   }
 

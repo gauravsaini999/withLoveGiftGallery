@@ -27,7 +27,7 @@ const ProfileScreen = () => {
   const autofillThreshold = 50; // milliseconds
   const { push, reset, setProfilePress } = useNavigationHistory();
   const navigation = useNavigation();
-  const { auth } = useFirebaseInit();
+  const { auth, db } = useFirebaseInit();
   const { loginFn, logoutFn } = useAuthenticationStateSlice();
   const [enableSignUp, setEnableSignUp] = React.useState(false);
   const [visible, setVisible] = React.useState(false);
@@ -38,7 +38,7 @@ const ProfileScreen = () => {
     error: ''
   });
 
-  const decider = () => {
+  const decideNEmpty = () => {
     if (enableSignUp) {
       setValues({
         username: '', password: '', repassword: '', error: ''
@@ -52,7 +52,7 @@ const ProfileScreen = () => {
   }
 
   React.useEffect(() => {
-    decider();
+    decideNEmpty();
   }, [enableSignUp])
 
   useFocusEffect(
@@ -118,13 +118,13 @@ const ProfileScreen = () => {
   }
 
   const validateInputs = () => {
-    if (!values['username']) {
+    if (values['username'] == '') {
       setValues((previous) => {
         return { ...previous, error: 'Email is required.' }
       });
       return false;
     }
-    if (!values['password']) {
+    if (values['password'] == '') {
       setValues((previous) => {
         return { ...previous, error: 'Password is required.' }
       });
@@ -134,23 +134,51 @@ const ProfileScreen = () => {
   };
 
   const handleSignup = async () => {
-    if (!validateInputs()) return;
+    const validated = validateInputs();
+    if (!validated) return;
+    const { deleteUser } = await import('firebase/auth');
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, values.username, values.password);
-      const user = userCredential.user;
-      if (user) {
-        await sendEmailVerification(user);
-        Toast.show({
-          type: 'success',
-          text1: 'Verification Email Sent!',
-          text2: 'Check your inbox to verify your account.',
-          position: 'top',
-          topOffset: 100,
-        });
-        debounceAsync(() => { }, 500);
-        logoutFn();
-        setEnableSignUp(false);
-      }
+      await createUserWithEmailAndPassword(auth, values.username, values.password).then(async () => {
+        const user = await auth.currentUser;
+        if (user) {
+          const { doc, setDoc } = await import('firebase/firestore');
+          await setDoc(doc(db, 'users', user.uid), { email: values.username, createdAt: new Date() }).then(() => {
+            console.log('Success', 'Your profile has been updated!');
+          }).catch((error) => {
+            deleteUser(user)
+              .then(() => {
+                console.log('User deleted');
+              })
+              .catch((err) => {
+                console.error('Error deleting user:', err);
+              });
+            console.log('Error in updating db while signup', error.message);
+          });
+          await sendEmailVerification(user).then(() => {
+            console.log("logging out after signup"); logoutFn();
+            Toast.show({
+              type: 'success',
+              text1: 'Verification Email Sent!',
+              text2: 'Check your inbox to verify your account.',
+              position: 'top',
+              topOffset: 100,
+              autoHide: false,
+              onPress: () => Toast.hide(),
+              props: { fontSize: 25, fontFamily: 'ComicSansMS' }
+            });
+            setEnableSignUp(false);
+          }).catch((err) => {
+            console.log(err, 'error while logging out !!');
+            deleteUser(user)
+              .then(() => {
+                console.log('User deleted');
+              })
+              .catch((err) => {
+                console.error('Error deleting user:', err);
+              });
+          })
+        }
+      });
     } catch (err) {
       Toast.show({
         type: 'error',
@@ -162,6 +190,14 @@ const ProfileScreen = () => {
         onPress: () => Toast.hide(),
         props: { fontSize: 25, fontFamily: 'ComicSansMS' }
       });
+      if (user)
+        deleteUser(user)
+          .then(() => {
+            console.log('User deleted');
+          })
+          .catch((err) => {
+            console.error('Error deleting user:', err);
+          });
       setValues((previous) => {
         return { ...previous, error: err.message }
       });
@@ -169,7 +205,8 @@ const ProfileScreen = () => {
   };
 
   const handleSignIn = async () => {
-    if (!validateInputs()) return;
+    const validated = validateInputs();
+    if (!validated) return;
     try {
       await signInWithEmailAndPassword(auth, values.username, values.password);
       await auth.currentUser.reload();
@@ -227,7 +264,7 @@ const ProfileScreen = () => {
   };
 
   const handleReset = (cb) => {
-    decider();
+    decideNEmpty();
     if (cb) {
       cb()
     }
@@ -236,7 +273,7 @@ const ProfileScreen = () => {
   const renderSignupLoginScreen = () => (
     <LoginScreen
       logoImageSource={require('../../assets/logo2.png')}
-      onLoginPress={handleSignup}
+      onLoginPress={() => { handleSignup() }}
       onSignupPress={() => { setEnableSignUp(false) }}
       onEmailChange={handleChange.bind(this, 'username')}
       loginButtonText={'Create an account'}
@@ -261,7 +298,7 @@ const ProfileScreen = () => {
   const renderLoginScreen = () => (
     <LoginScreen
       logoImageSource={require('../../assets/logo2.png')}
-      onLoginPress={handleSignIn}
+      onLoginPress={() => { handleSignIn() }}
       onSignupPress={() => { setEnableSignUp(true) }}
       onEmailChange={handleChange.bind(this, 'username')}
       onPasswordChange={handleChange.bind(this, 'password')}
@@ -297,18 +334,4 @@ const ProfileScreen = () => {
 
 export default ProfileScreen;
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center', // Center in the middle
-  },
-  autoButton: {
-    paddingHorizontal: 20, // Adjust as needed
-    paddingVertical: 10,
-    backgroundColor: '#2089dc',
-  },
-  buttonContainer: {
-    alignSelf: 'flex-start', // Shrinks to fit content
-  },
-});
+
