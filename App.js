@@ -6,7 +6,6 @@ import {
 } from 'react-native';
 import {
   NavigationContainer,
-  useFocusEffect,
   useNavigation,
   useNavigationContainerRef
 } from '@react-navigation/native';
@@ -14,7 +13,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { enableScreens } from 'react-native-screens';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import CartScreen from './screens/UnAuthenticatedTabScreens/Cart';
 import HomeScreen from './screens/UnAuthenticatedTabScreens/Home';
 import ProfileScreen from './screens/AuthenticationScreens/Profile';

@@ -1,4 +1,4 @@
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { TouchableOpacity } from 'react-native';
 
 export default function ProfileIconButton({ onPress, changeStyle }) {

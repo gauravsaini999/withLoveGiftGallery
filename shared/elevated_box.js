@@ -1,17 +1,25 @@
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { colors } from './colors';
 
-const ElevatedBox = ({image, text, boxStyle, onLayout}) => {
+const ElevatedBox = ({ image, text, boxStyle, onLayout }) => {
+    console.log(boxStyle, 'boxStyle in elevated box');
     return (
         <View style={styles.container}>
             <View style={[styles.elevatedBox, boxStyle]} onLayout={onLayout}>
-                <Image source={image} style={styles.img} />
+                <Image
+                    source={image}
+                    style={{
+                        width: boxStyle?.width ? boxStyle.width - 50 : 100,
+                        height: boxStyle?.height ? boxStyle.height - 50 : 100,
+                        resizeMode: 'contain'
+                    }}
+                />
                 <Text style={styles.text}>{text}</Text>
             </View>
         </View>
     );
 };
-  
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -21,7 +29,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         backgroundColor: colors.elevatedBox[2],
         borderRadius: 6,
-        justifyContent: 'center',
         textAlign: 'center',
         paddingHorizontal: 20,
         paddingVertical: 20,
@@ -44,7 +51,7 @@ const styles = StyleSheet.create({
         resizeMode: 'contain',
     },
     text: {
-        fontSize: 18,
+        fontSize: 12,
         textAlign: 'center'
     },
 });

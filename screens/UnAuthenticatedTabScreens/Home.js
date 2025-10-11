@@ -148,17 +148,17 @@ export default function HomeScreen() {
           <Image source={require('../../assets/logo2.png')} style={styles.image} />
         </View>
         <View style={styles.mainContent}>
-          <View style={[styles.rowContent, { flex: 1 }]}>
+          <View style={styles.rowContent}>
             <View style={styles.boxItem}>
-              <ElevatedBox boxStyle={commonStyle} onLayout={updateSize} image={require('../../assets/elephant_toy.png')} text={"Toys Needing Cells"} />
+              <ElevatedBox boxStyle={commonStyle} onLayout={updateSize} image={require('../../assets/elephant_toy.png')} text={"With Batteries"} />
             </View>
             <View style={styles.boxItem}>
               <ElevatedBox boxStyle={commonStyle} onLayout={updateSize} image={require("../../assets/game.jpg")} text={"Board Games"} />
             </View>
           </View>
-          <View style={[styles.rowContent, { flex: 1 }]}>
+          <View style={styles.rowContent}>
             <View style={styles.boxItem}>
-              <ElevatedBox boxStyle={commonStyle} onLayout={updateSize} image={require("../../assets/car.jpg")} text={"Need No Cells"} />
+              <ElevatedBox boxStyle={commonStyle} onLayout={updateSize} image={require("../../assets/car.jpg")} text={"Manual Toys"} />
             </View>
             <View style={styles.boxItem}>
               <ElevatedBox boxStyle={commonStyle} onLayout={updateSize} image={require("../../assets/outdoor.jpg")} text={"Outdoor Fun"} />

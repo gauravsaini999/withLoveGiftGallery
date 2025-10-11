@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, ScrollView, Button, Text, StatusBar, Platform, UIManager, Keyboard, TouchableWithoutFeedback, KeyboardAvoidingView, StyleSheet } from 'react-native';
+import { View, ScrollView, StatusBar, Platform, UIManager, Keyboard, TouchableWithoutFeedback, KeyboardAvoidingView, StyleSheet } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import LoginScreen from "react-native-login-screen";
 import { useFirebaseInit } from '../../zustand/useFirebaseInit';
@@ -10,7 +10,6 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVe
 import ProfileIconButton from '../../components/ProfileButton';
 import TextInput from "react-native-text-input-interactive";
 import Toast from 'react-native-toast-message';
-import { debounceAsync } from '../../shared/utilities';
 
 if (
   Platform.OS === 'android' &&
@@ -30,13 +29,15 @@ const ProfileScreen = () => {
   const { auth, db } = useFirebaseInit();
   const { loginFn, logoutFn } = useAuthenticationStateSlice();
   const [enableSignUp, setEnableSignUp] = React.useState({ value: false, from: "auth init"});
-  const [visible, setVisible] = React.useState(false);
+  const [visible, setVisible] = React.useState(true);
   const [values, setValues] = React.useState({
-    username: '',
-    password: '',
-    repassword: '',
+    username: 'your-email@domain.com',
+    password: 'your-case-sensitive-password',
+    repassword: 'your-case-sensitive-password',
     error: ''
   });
+  const focusRef = React.useRef(null)
+  const [focusVal, setFocusVal] = React.useState('')
 
   const decideNEmpty = () => {
     if (enableSignUp["value"]) {
@@ -117,9 +118,31 @@ const ProfileScreen = () => {
   //   };
   // }, []);
 
+  const handleUsernameFocus = () => {
+    focusRef.current = 'username_focussed';
+    setFocusVal(focusRef.current);
+  }
+
   const handlePasswordFocus = () => {
+    focusRef.current = 'password_focussed';
+    setFocusVal(focusRef.current);
     passwordFocusTime.current = Date.now();
   }
+
+  React.useEffect(() => {
+    if (focusVal == 'username_focussed') {
+      setValues(prev => {
+        return { ...prev, username: '' }
+      })
+    }
+    else if (focusVal == 'password_focussed') {
+      setValues(prev => {
+        return { ...prev, password: '' }
+      })
+    }
+  }, [focusVal])
+
+  console.log(values['username'], values['password'], "<<<<< both values >>>>>")
 
   const validateInputs = () => {
     if (values['username'] == '') {
@@ -212,17 +235,14 @@ const ProfileScreen = () => {
   };
 
   const handleSignIn = async() => {
-    console.log('HANDLE SIGN IN RAN');
     const validated = validateInputs();
     if (!validated) return;
     try {
       await signInWithEmailAndPassword(auth, values.username, values.password);
       await auth.currentUser.reload();
       const currentUser = auth.currentUser;
-      console.log("From handleSignIn : user = ", currentUser);
       if (currentUser) {
         loginFn({ userObj: currentUser });
-        console.log("SAVING CURRENT USER IN PROFILE .JS FILE")
         reset();
         async function sendVerify() {
           await sendEmailVerification(currentUser);
@@ -305,6 +325,7 @@ const ProfileScreen = () => {
 
   const renderLoginScreen = () => (
     <LoginScreen
+      style={styles.fontForAll}
       logoImageSource={require('../../assets/logo2.png')}
       onLoginPress={handleSignIn}
       onSignupPress={() => setEnableSignUp({ value: true, from: "sign up button press" })}
@@ -314,14 +335,15 @@ const ProfileScreen = () => {
         autoComplete: "email",
         textContentType: "emailAddress",
         returnKeyType: "next",
-        value: values['username']
+        onFocus: handleUsernameFocus,
+        value: values['username'],
       }}
       passwordTextInputProps={{
         autoComplete: "password",
         textContentType: "password",
         returnKeyType: "done",
         onFocus: handlePasswordFocus,
-        value: values['password']
+        value: values['password'],
       }}
     />
   );
@@ -343,5 +365,11 @@ const ProfileScreen = () => {
 }
 
 export default ProfileScreen;
+
+const styles = StyleSheet.create({
+  fontForAll: {
+    fontSize: 12,
+  }
+})
 
 
