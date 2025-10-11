@@ -4,7 +4,7 @@ import { Input, Button, Avatar, Text, ButtonGroup } from 'react-native-elements'
 import * as ImagePicker from 'expo-image-picker';
 import { useFirebaseInit } from '../../zustand/useFirebaseInit';
 import { useAuthenticationStateSlice } from '../../zustand/useAuthenticationStateSlice';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { signOut } from 'firebase/auth';
 import IntraScreenBackButton from '../../components/IntraScreenBackButton';
 import { useNavigationHistory } from '../../zustand/useNavigationHistory';
@@ -68,7 +68,7 @@ const EditProfileScreen = () => {
         headerTitle: 'Edit Profile',
         headerLeft: () => <IntraScreenBackButton />,
         headerRight: () => (<TouchableOpacity onPress={handleLogout} activeOpacity={0.7}>
-          <Ionicons name="log-out-outline" size={24} color="#333" />
+          <MaterialIcons name="logout" size={24} color="#333" />
         </TouchableOpacity>)
       })
     }, [navigation, history])

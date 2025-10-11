@@ -160,6 +160,7 @@ function AuthenticatedTabbedNavigator() {
       <Tab.Screen name="My Orders" component={MyOrders} />
       <Tab.Screen name="Saved Addresses" component={SavedAddresses} />
       <Tab.Screen name="Auth" component={LoginStackNavigatorComponent} options={{ tabBarItemStyle: { display: 'none' } }} />
+      <Tab.Screen name="Home" component={HomeStackNavigatorComponent} options={{ tabBarItemStyle: { display: 'none' } }} />
     </Tab.Navigator>
   );
 }
@@ -179,6 +180,7 @@ function HomeStackNavigatorComponent() {
         name="Home Screen"
         component={HomeScreen}
       />
+      <Stack.Screen name="Edit Profile" component={ProfileScreenDecider} />
     </Stack.Navigator>
   )
 }

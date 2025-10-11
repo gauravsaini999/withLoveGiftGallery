@@ -9,10 +9,12 @@ import { useNavigationHistory } from "../../zustand/useNavigationHistory";
 import { useFirebaseInit } from "../../zustand/useFirebaseInit";
 import { useAuthenticationStateSlice } from '../../zustand/useAuthenticationStateSlice';
 import { colors } from "../../shared/colors";
+import ProfileIconButton from '../../components/ProfileButton';
 
 export default function HomeScreen() {
   const { history, push, reset: resetNavigationHistory, initPaths } = useNavigationHistory();
   const navigation = useNavigation();
+  const { setProfilePress, reset } = useNavigationHistory();
 
   const { loginFn, isLoggedIn, userObj } = useAuthenticationStateSlice();
   const { firebaseConfig, setApp, setAuth, app, auth, setDb, db } = useFirebaseInit();
@@ -38,7 +40,14 @@ export default function HomeScreen() {
       parent.setOptions({
         headerTitle: 'Home',
         headerLeft: history.length > 1 ? () => <IOSBackButton /> : null,
-      });
+        headerRight: () => (<ProfileIconButton onPress={() => {
+          reset();
+          if (!isLoggedIn) {
+            navigation.navigate('Auth', { screen: "Authenticate Screen" });
+          } else {
+            setProfilePress(true);
+          }
+        }} />)})
     }, [navigation, history])
   );
 
@@ -100,7 +109,7 @@ export default function HomeScreen() {
       else {
         console.log("ALREADY LOGGED IN AND JUST REFRESHING THE ZUSTAND USER STATE BY RELOADING")
         await auth.currentUser.reload();
-        loginFn({ userObj: auth.currentUser  })
+        loginFn({ userObj: auth.currentUser })
       }
     }
     if (Object.keys(auth).length) {
@@ -122,7 +131,7 @@ export default function HomeScreen() {
             const profileData = profileSnap.data();
             if (profileData['phoneLinked']) {
               loginFn({ userObj: userObj })
-            } 
+            }
           }
         }
       }

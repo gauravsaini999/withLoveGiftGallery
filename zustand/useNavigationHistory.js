@@ -67,6 +67,9 @@ export const useNavigationHistory = create((set) => ({
         if (wordSplit[0] == 'Home') {
           screen = 'Home';
         }
+        else if (wordSplit[0] = 'Edit') {
+          screen = 'Edit Profile';
+        }
       }
       const last = state.history[state.history.length - 1];
       if (last === screen) return state;
