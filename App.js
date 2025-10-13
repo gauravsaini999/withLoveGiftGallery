@@ -2,7 +2,8 @@
 import * as React from 'react';
 import * as Font from 'expo-font';
 import {
-  StatusBar
+  StatusBar,
+  TouchableOpacity
 } from 'react-native';
 import {
   NavigationContainer,
@@ -14,6 +15,7 @@ import { enableScreens } from 'react-native-screens';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import CartScreen from './screens/UnAuthenticatedTabScreens/Cart';
 import HomeScreen from './screens/UnAuthenticatedTabScreens/Home';
 import ProfileScreen from './screens/AuthenticationScreens/Profile';
@@ -26,11 +28,13 @@ import SavedAddresses from './screens/AuthenticatedTabScreens/SavedAddresses';
 import { colors } from './shared/colors';
 import { useNavigationHistory } from './zustand/useNavigationHistory';
 import { useAuthenticationStateSlice } from './zustand/useAuthenticationStateSlice';
+import { useFirebaseInit } from './zustand/useFirebaseInit';
 import { Provider as PaperProvider } from 'react-native-paper';
 import IntraScreenBackButton from './components/IntraScreenBackButton';
 import Toast from 'react-native-toast-message';
 import { CustomToast } from './shared/utilities';
 import eventBus from './shared/eventBus';
+import { signOut } from 'firebase/auth';
 
 
 const Tab = createBottomTabNavigator();
@@ -62,7 +66,7 @@ function LoginStackNavigatorComponent() {
 
 
 function UnauthenticatedTabbedNavigator() {
-  const { setProfilePress, reset } = useNavigationHistory();
+  const { reset } = useNavigationHistory();
   const { isLoggedIn } = useAuthenticationStateSlice();
   return (
     <Tab.Navigator
@@ -70,11 +74,9 @@ function UnauthenticatedTabbedNavigator() {
       screenOptions={({ route, navigation }) => ({
         headerShown: true,
         headerRight: () => (<ProfileIconButton onPress={() => {
-          reset();
+
           if (!isLoggedIn) {
             navigation.navigate('Auth', { screen: "Authenticate Screen" });
-          } else {
-            setProfilePress(true);
           }
         }} changeStyle={false} />),
         headerStyle: {
@@ -112,24 +114,38 @@ function UnauthenticatedTabbedNavigator() {
 }
 
 function AuthenticatedTabbedNavigator() {
-  const { setProfilePress, reset } = useNavigationHistory();
+  const { reset } = useNavigationHistory();
   const navigation = useNavigation();
+  const { auth } = useFirebaseInit();
+  const { isLoggedIn, logoutFn } = useAuthenticationStateSlice();
+  console.log("----- AuthenticatedTabbedNavigator Rendered -----");
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      const currentUser = auth?.currentUser;
+      if (!currentUser) {
+        logoutFn();
+      }
+    } catch (errMsg) {
+      console.log('Error while signing out: ', errMsg);
+    }
+  };
   return (
     <Tab.Navigator
-      initialRouteName='Edit Profile'
+      initialRouteName='Home'
       screenOptions={({ route }) => ({
         headerShown: true,
         headerStyle: {
           backgroundColor: colors.contentColor,
         },
-        headerRight: () => (<ProfileIconButton onPress={() => {
-          reset();
-          if (!isLoggedIn) {
+        headerRight: () => (isLoggedIn ?
+          <TouchableOpacity onPress={handleLogout} activeOpacity={0.7}>
+            <MaterialIcons name="logout" size={20} color="#333" style={{ marginRight: 10 }} />
+          </TouchableOpacity> : <ProfileIconButton onPress={() => {
+
             navigation.navigate('Auth', { screen: "Authenticate Screen" });
-          } else {
-            setProfilePress(true);
-          }
-        }} changeStyle={false} />),
+          }} changeStyle={false} />),
         headerLeft: () => {
           return <IntraScreenBackButton />
         },
@@ -202,7 +218,7 @@ const toastConfig = {
 };
 
 export default function App() {
-  const { push, pop, history, profilePress, setActiveRoute, insertInitPaths, activeRoute } = useNavigationHistory();
+  const { push, pop, history, setActiveRoute, insertInitPaths, activeRoute } = useNavigationHistory();
   const routeNameRef = React.useRef(null);
   const { isLoggedIn } = useAuthenticationStateSlice();
   const navigationRef = useNavigationContainerRef();
@@ -214,7 +230,6 @@ export default function App() {
   //   console.log('Persisted raw JSON:', value);
   // });
   console.log(activeRoute, '-------- active route ----------')
-  console.log(profilePress, '----------Profile Press -------------')
   console.log(isLoggedIn, '----- is logged in ----------')
 
   const loadFonts = async () => {
@@ -230,11 +245,11 @@ export default function App() {
 
   React.useEffect(() => {
     console.log('triggered !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-    if (!profilePress && isLoggedIn) {
+    if (isLoggedIn) {
       console.log('inside use effect for tab change complete event emitter function')
       eventBus.emit("tabChangedComplete", { completed: true })
     }
-  }, [profilePress, isLoggedIn])
+  }, [isLoggedIn])
 
   return (
     <PaperProvider>
@@ -273,7 +288,7 @@ export default function App() {
             routeNameRef.current = currentRoute;
             setActiveRoute(routeNameRef.current);
           }}>
-          {isLoggedIn && profilePress ? <AuthenticatedTabbedNavigator /> : <UnauthenticatedTabbedNavigator />}
+          {isLoggedIn ? <AuthenticatedTabbedNavigator /> : <UnauthenticatedTabbedNavigator />}
         </NavigationContainer>
         {/* </SafeAreaView> */}
         {/* Toast MUST be outside navigation, and setRef is required if rendering inside portals */}

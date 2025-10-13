@@ -141,7 +141,6 @@ const UpdatedProfile = ({ profile }) => {
   };
 
   React.useLayoutEffect(() => {
-    reset();
     push('Edit Profile');
   }, []);
 

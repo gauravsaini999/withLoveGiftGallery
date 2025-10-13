@@ -51,7 +51,6 @@ const traverseNavTree = (state, parentNavigator = null) => {
 export const useNavigationHistory = create((set) => ({
   history: [],
   activeRoute: 'Home',
-  profilePress: false,
   initPaths: [],
   insertInitPaths: (navigationState) => set((state) => {
     const path = traverseNavTree(navigationState);
@@ -83,11 +82,5 @@ export const useNavigationHistory = create((set) => ({
   reset: () => set({ history: [] }),
   setActiveRoute: (screen) => set((state) => {
     return { ...state, activeRoute: screen }
-  }),
-  setProfilePress: (bool) => set((state) => {
-    return {
-      ...state,
-      profilePress: bool
-    }
   })
 }));

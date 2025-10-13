@@ -25,7 +25,7 @@ const ProfileScreen = () => {
   const passwordFocusTime = React.useRef(0);
   // const debounceTimeout = React.useRef(null);
   const autofillThreshold = 50; // milliseconds
-  const { push, reset } = useNavigationHistory();
+  const { push } = useNavigationHistory();
   const navigation = useNavigation();
   const { auth, db } = useFirebaseInit();
   const { loginFn, logoutFn } = useAuthenticationStateSlice();
@@ -60,11 +60,10 @@ const ProfileScreen = () => {
     decideNEmpty();
   }, [enableSignUp["value"]])
 
-  useFocusEffect(
-    React.useCallback(() => {
-      push("Authenticate Screen");
-    }, [])
-  );
+
+  React.useLayoutEffect(() => {
+    push('Authenticate Screen');
+  }, []);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -91,7 +90,6 @@ const ProfileScreen = () => {
     if (inputIdentifier === 'password') {
       const elapsed = Date.now() - passwordFocusTime.current;
       if (!values.password && elapsed < autofillThreshold) {
-        console.log('Password autofilled!');
         Keyboard.dismiss();
       }
       else if (values.password && values.password == enteredValue) {
@@ -142,8 +140,6 @@ const ProfileScreen = () => {
       })
     }
   }, [focusVal])
-
-  console.log(values['username'], values['password'], "<<<<< both values >>>>>")
 
   const validateInputs = () => {
     if (values['username'] == '') {
@@ -244,7 +240,6 @@ const ProfileScreen = () => {
       const currentUser = auth.currentUser;
       if (currentUser) {
         loginFn({ userObj: currentUser });
-        reset();
         async function sendVerify() {
           await sendEmailVerification(currentUser);
           Toast.show({
@@ -259,6 +254,7 @@ const ProfileScreen = () => {
           if (currentUser.emailVerified) {
             const isPhoneLinked = currentUser.phoneNumber == undefined ? null : true;
             if (!isPhoneLinked) {
+              console.log("isPhoneLinked = ", isPhoneLinked);
               Toast.show({
                 type: 'info',
                 text1: 'Verify Your Mobile Number!',
@@ -267,9 +263,6 @@ const ProfileScreen = () => {
                 topOffset: 100,
               });
               navigation.navigate('Auth', { screen: 'Phone Link' });
-            }
-            else {
-              navigation.navigate('Home', { screen: 'Home Screen' })
             }
           }
           else {
@@ -348,7 +341,7 @@ const ProfileScreen = () => {
       loginTextStyle={{ fontSize: 12 }}
       loginButtonText={'Sign In'}
       dividerStyle={{ display: 'none' }}
-      logoImageStyle={{ width: ScreenWidth/2.5, resizeMode: 'contain' }}
+      logoImageStyle={{ width: ScreenWidth / 2.5, resizeMode: 'contain' }}
       emailTextInputProps={{
         autoComplete: "email",
         textContentType: "emailAddress",

@@ -19,7 +19,6 @@ export default function LinkPhone() {
   const [loading, setLoading] = useState(false);
   const { app, auth, db } = useFirebaseInit();
   const { userObj: user, setPhoneAuth } = useAuthenticationStateSlice();
-  const { setProfilePress } = useNavigationHistory();
 
   useEffect(() => {
     const onTabChanged = ({ completed }) => {
@@ -137,7 +136,6 @@ export default function LinkPhone() {
           props: { fontSize: 25, fontFamily: 'ComicSansMS' }
         });
         setPhoneAuth(true);
-        setProfilePress(false);
       }).catch(async (err) => {
         Alert.alert('Error', 'Unable to set flag in Db!', err);
         await deleteUser(user)

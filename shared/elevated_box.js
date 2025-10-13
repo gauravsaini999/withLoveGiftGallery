@@ -2,7 +2,6 @@ import { View, Text, StyleSheet, Image } from 'react-native';
 import { colors } from './colors';
 
 const ElevatedBox = ({ image, text, boxStyle, onLayout }) => {
-    console.log(boxStyle, 'boxStyle in elevated box');
     return (
         <View style={styles.container}>
             <View style={[styles.elevatedBox, boxStyle]} onLayout={onLayout}>

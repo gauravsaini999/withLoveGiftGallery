@@ -5,7 +5,7 @@ import { colors } from '../shared/colors';
 import { useNavigationHistory } from '../zustand/useNavigationHistory';
 
 export default function IOSBackButton() {
-  const { history, reset, setProfilePress } = useNavigationHistory();
+  const { history, reset } = useNavigationHistory();
   const navigation = useNavigation();
   console.log(history, "------------ history ---------------")
   return (
@@ -13,9 +13,8 @@ export default function IOSBackButton() {
       if (history.length > 1)
         navigation.navigate(history[history.length - 2])
       else if (history.length <= 1) {
-        setProfilePress(false);
         // navigation.navigate('Home', { screen: 'Home Screen' });
-        reset();
+
       }
     }} style={styles.backButton}>
       <Ionicons

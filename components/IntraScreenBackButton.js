@@ -4,13 +4,10 @@ import { colors } from '../shared/colors';
 import { useNavigationHistory } from '../zustand/useNavigationHistory';
 
 export default function IntraScreenBackButton() {
-  const { setProfilePress, activeRoute, reset } = useNavigationHistory();
+  const { activeRoute, reset } = useNavigationHistory();
   return (
     <TouchableOpacity onPress={() => {
-      reset();
-      if (activeRoute == 'Edit Profile') {
-        setProfilePress(false);
-      }
+
     }}
       style={styles.backButton}>
       <Ionicons

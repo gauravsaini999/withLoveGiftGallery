@@ -87,7 +87,6 @@ const EditProfileScreen = () => {
   };
 
   React.useLayoutEffect(() => {
-    reset();
     push('Edit Profile');
   }, []);
 

@@ -1,7 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import { useFocusEffect } from "@react-navigation/native";
 import * as React from 'react';
-import { View, Text, Image, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import ElevatedBox from '../../shared/elevated_box';
 import MyCarousel from "../../shared/carousel";
 import IOSBackButton from "../../components/CustomBackButton";
@@ -10,13 +10,16 @@ import { useFirebaseInit } from "../../zustand/useFirebaseInit";
 import { useAuthenticationStateSlice } from '../../zustand/useAuthenticationStateSlice';
 import { colors } from "../../shared/colors";
 import ProfileIconButton from '../../components/ProfileButton';
+import { signOut } from 'firebase/auth';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+
 
 export default function HomeScreen() {
   const { history, push, reset: resetNavigationHistory, initPaths } = useNavigationHistory();
   const navigation = useNavigation();
-  const { setProfilePress, reset } = useNavigationHistory();
+  const { reset } = useNavigationHistory();
 
-  const { loginFn, isLoggedIn, userObj } = useAuthenticationStateSlice();
+  const { loginFn, isLoggedIn, userObj, logoutFn } = useAuthenticationStateSlice();
   const { firebaseConfig, setApp, setAuth, app, auth, setDb, db } = useFirebaseInit();
 
   const [maxWidth, setMaxWidth] = React.useState(0);
@@ -33,21 +36,35 @@ export default function HomeScreen() {
     height: maxHeight || undefined,
   };
 
+  React.useLayoutEffect(() => {
+    push('Home');
+  }, []);
+
   useFocusEffect(
     React.useCallback(() => {
+      const handleLogout = async () => {
+        try {
+          await signOut(auth);
+          const currentUser = auth?.currentUser;
+          if (!currentUser) {
+            logoutFn();
+          }
+        } catch (errMsg) {
+          console.log('Error while signing out: ', errMsg);
+        }
+      };
       const parent = navigation.getParent();
-      push('Home');
       parent.setOptions({
         headerTitle: 'Home',
         headerLeft: history.length > 1 ? () => <IOSBackButton /> : null,
-        headerRight: () => (<ProfileIconButton onPress={() => {
-          reset();
-          if (!isLoggedIn) {
+        headerRight: () => (isLoggedIn ?
+          <TouchableOpacity onPress={handleLogout} activeOpacity={0.7}>
+            <MaterialIcons name="logout" size={20} color="#333" style={{ marginRight: 10 }} />
+          </TouchableOpacity> : <ProfileIconButton onPress={() => {
+
             navigation.navigate('Auth', { screen: "Authenticate Screen" });
-          } else {
-            setProfilePress(true);
-          }
-        }} />)})
+          }} changeStyle={false} />),
+      })
     }, [navigation, history])
   );
 
