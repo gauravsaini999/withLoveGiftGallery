@@ -12,6 +12,8 @@ import { CLOUD_NAME } from '@env';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import ModalLoader from '../../components/ModalLoader';
 import * as Location from 'expo-location';
+import { doc, setDoc } from 'firebase/firestore';
+
 import {
   Avatar,
   Button,
@@ -279,7 +281,6 @@ const UpdatedProfile = ({ profile }) => {
         Alert.alert('Not Logged In', 'You must be signed in to complete your profile.');
         return;
       }
-      const { doc, setDoc } = await import('firebase/firestore');
       await setDoc(doc(db, 'users', user.uid), profileData);
       Alert.alert('Success', 'Your profile has been updated!');
     } catch (error) {

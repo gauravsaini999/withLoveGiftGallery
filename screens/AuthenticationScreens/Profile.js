@@ -6,7 +6,7 @@ import { useFirebaseInit } from '../../zustand/useFirebaseInit';
 import { useNavigationHistory } from '../../zustand/useNavigationHistory';
 import { useAuthenticationStateSlice } from '../../zustand/useAuthenticationStateSlice';
 import IOSBackButton from '../../components/CustomBackButton';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, deleteUser } from 'firebase/auth';
 import ProfileIconButton from '../../components/ProfileButton';
 import TextInput from "react-native-text-input-interactive";
 import Toast from 'react-native-toast-message';
@@ -28,7 +28,7 @@ const ProfileScreen = () => {
   const { push } = useNavigationHistory();
   const navigation = useNavigation();
   const { auth, db } = useFirebaseInit();
-  const { loginFn, logoutFn } = useAuthenticationStateSlice();
+  const { loginFn } = useAuthenticationStateSlice();
   const [enableSignUp, setEnableSignUp] = React.useState({ value: false, from: "auth init" });
   const [visible, setVisible] = React.useState(true);
   const [values, setValues] = React.useState({
@@ -160,7 +160,6 @@ const ProfileScreen = () => {
   const handleSignup = async () => {
     const validated = validateInputs();
     if (!validated) return;
-    const { deleteUser } = await import('firebase/auth');
     try {
       await createUserWithEmailAndPassword(auth, values.username, values.password).then(async () => {
         const user = await auth.currentUser;
@@ -168,8 +167,8 @@ const ProfileScreen = () => {
           const { doc, setDoc } = await import('firebase/firestore')
           await setDoc(doc(db, 'users', user.uid), { email: values.username, createdAt: new Date() }).then(() => {
             console.log('Success', 'Your profile has been updated!')
-          }).catch((error) => {
-            deleteUser(user)
+          }).catch(async (error) => {
+            await deleteUser(user)
               .then(() => {
                 console.log('User deleted')
               })
@@ -264,6 +263,8 @@ const ProfileScreen = () => {
               });
               navigation.navigate('Auth', { screen: 'Phone Link' });
             }
+            console.log('Email is verified, navigating to Home screen');
+            navigation.navigate('Home');
           }
           else {
             await sendVerify();

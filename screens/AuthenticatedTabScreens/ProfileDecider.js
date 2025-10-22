@@ -4,6 +4,7 @@ import ViewOrEditProfileForm from './UpdatedProfile';
 import { useAuthenticationStateSlice } from '../../zustand/useAuthenticationStateSlice';
 import { useFirebaseInit } from '../../zustand/useFirebaseInit';
 import ModalLoader from '../../components/ModalLoader';
+import { doc, getDoc } from 'firebase/firestore';
 
 const ProfileScreenDecider = () => {
   const { userObj: user } = useAuthenticationStateSlice();
@@ -14,7 +15,6 @@ const ProfileScreenDecider = () => {
   useEffect(() => {
     const fetchUserAndProfile = async () => {
       try {
-        const { doc, getDoc } = await import('firebase/firestore');
         if (user) {
           const profileRef = doc(db, 'users', user.uid); // adjust path if needed
           const profileSnap = await getDoc(profileRef);

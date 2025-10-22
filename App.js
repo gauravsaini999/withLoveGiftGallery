@@ -3,12 +3,13 @@ import * as React from 'react';
 import * as Font from 'expo-font';
 import {
   StatusBar,
-  TouchableOpacity
+  TouchableOpacity,
 } from 'react-native';
 import {
   NavigationContainer,
   useNavigation,
-  useNavigationContainerRef
+  useNavigationContainerRef,
+  useFocusEffect
 } from '@react-navigation/native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { enableScreens } from 'react-native-screens';
@@ -66,19 +67,36 @@ function LoginStackNavigatorComponent() {
 
 
 function UnauthenticatedTabbedNavigator() {
-  const { reset } = useNavigationHistory();
-  const { isLoggedIn } = useAuthenticationStateSlice();
+  const { setProfilePress, reset } = useNavigationHistory();
+  const { isLoggedIn, logoutFn } = useAuthenticationStateSlice();
+  const { auth } = useFirebaseInit();
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      const currentUser = auth?.currentUser;
+      if (!currentUser) {
+        logoutFn();
+      }
+    } catch (errMsg) {
+      console.log('Error while signing out: ', errMsg);
+    }
+  };
   return (
     <Tab.Navigator
       initialRouteName='Home'
       screenOptions={({ route, navigation }) => ({
         headerShown: true,
-        headerRight: () => (<ProfileIconButton onPress={() => {
-
+        headerRight: () => (!isLoggedIn ? <ProfileIconButton onPress={() => {
+          reset();
           if (!isLoggedIn) {
             navigation.navigate('Auth', { screen: "Authenticate Screen" });
           }
-        }} changeStyle={false} />),
+        }} changeStyle={false} />
+          :
+          <TouchableOpacity onPress={handleLogout} activeOpacity={0.7}>
+            <MaterialIcons name="logout" size={24} color="#333" />
+          </TouchableOpacity>),
         headerStyle: {
           backgroundColor: colors.contentColor,
         },
@@ -143,7 +161,6 @@ function AuthenticatedTabbedNavigator() {
           <TouchableOpacity onPress={handleLogout} activeOpacity={0.7}>
             <MaterialIcons name="logout" size={20} color="#333" style={{ marginRight: 10 }} />
           </TouchableOpacity> : <ProfileIconButton onPress={() => {
-
             navigation.navigate('Auth', { screen: "Authenticate Screen" });
           }} changeStyle={false} />),
         headerLeft: () => {
@@ -177,7 +194,7 @@ function AuthenticatedTabbedNavigator() {
       <Tab.Screen name="Saved Addresses" component={SavedAddresses} />
       <Tab.Screen name="Auth" component={LoginStackNavigatorComponent} options={{ tabBarItemStyle: { display: 'none' } }} />
       <Tab.Screen name="Home" component={HomeStackNavigatorComponent} options={{ tabBarItemStyle: { display: 'none' } }} />
-    </Tab.Navigator>
+    </Tab.Navigator >
   );
 }
 
@@ -244,12 +261,12 @@ export default function App() {
   }, []);
 
   React.useEffect(() => {
-    console.log('triggered !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-    if (isLoggedIn) {
-      console.log('inside use effect for tab change complete event emitter function')
-      eventBus.emit("tabChangedComplete", { completed: true })
+    if (isLoggedIn && navigationRef.isReady()) {
+      eventBus.emit("tabChangedComplete", { completed: true });
+      console.log('Navigating to Home screen after login state change');
+      navigationRef.navigate('Home');
     }
-  }, [isLoggedIn])
+  }, [isLoggedIn, navigationRef]);
 
   return (
     <PaperProvider>
@@ -296,4 +313,4 @@ export default function App() {
       </SafeAreaProvider>
     </PaperProvider>
   );
-}
+};

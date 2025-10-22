@@ -9,6 +9,7 @@ import { useAuthenticationStateSlice } from '../../zustand/useAuthenticationStat
 import { useNavigationHistory } from '../../zustand/useNavigationHistory';
 import eventBus from '../../shared/eventBus';
 import { useNavigation } from '@react-navigation/native';
+import { PhoneAuthProvider } from 'firebase/auth';
 
 export default function LinkPhone() {
   const navigation = useNavigation();
@@ -36,7 +37,6 @@ export default function LinkPhone() {
   }, []);
 
   const sendOtp = async () => {
-    const { PhoneAuthProvider } = await import('firebase/auth');
     try {
       startTransition(() => {
         setLoading(true);

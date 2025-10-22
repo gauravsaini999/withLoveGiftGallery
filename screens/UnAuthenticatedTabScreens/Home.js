@@ -11,8 +11,9 @@ import { useAuthenticationStateSlice } from '../../zustand/useAuthenticationStat
 import { colors } from "../../shared/colors";
 import ProfileIconButton from '../../components/ProfileButton';
 import { signOut } from 'firebase/auth';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { MaterialIcons } from '@expo/vector-icons';
+import IntraScreenBackButton from "../../components/IntraScreenBackButton";
 
 export default function HomeScreen() {
   const { history, push, reset: resetNavigationHistory, initPaths } = useNavigationHistory();
@@ -56,12 +57,11 @@ export default function HomeScreen() {
       const parent = navigation.getParent();
       parent.setOptions({
         headerTitle: 'Home',
-        headerLeft: history.length > 1 ? () => <IOSBackButton /> : null,
+        headerLeft: history.length > 1 ? () => <IOSBackButton /> : () => <IntraScreenBackButton />,
         headerRight: () => (isLoggedIn ?
           <TouchableOpacity onPress={handleLogout} activeOpacity={0.7}>
             <MaterialIcons name="logout" size={20} color="#333" style={{ marginRight: 10 }} />
           </TouchableOpacity> : <ProfileIconButton onPress={() => {
-
             navigation.navigate('Auth', { screen: "Authenticate Screen" });
           }} changeStyle={false} />),
       })
@@ -81,7 +81,6 @@ export default function HomeScreen() {
   }, [initPaths])
 
   async function loadFirebase() {
-    const { initializeApp, getApps, getApp } = await import('firebase/app');
     let app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     setApp(app);
   }
