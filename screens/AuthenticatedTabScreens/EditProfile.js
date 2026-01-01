@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useFormState } from 'react';
 import { Modal, TouchableWithoutFeedback, ScrollView, StyleSheet, Alert, ActivityIndicator, TouchableOpacity, View, Platform } from 'react-native';
 import { Input, Button, Avatar, Text, ButtonGroup } from 'react-native-elements';
 import * as ImagePicker from 'expo-image-picker';
@@ -41,6 +41,12 @@ const DateTimePickerCustomized = ({ showDatePicker, setShowDatePicker, bday, onC
 };
 
 const EditProfileScreen = () => {
+  const [formData, setFormData] = useFormState({
+    name: '',
+    email: '',
+    location: '',
+    bday: new Date(),
+  });
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [location, setLocation] = useState('');
@@ -54,6 +60,13 @@ const EditProfileScreen = () => {
   const { userObj: user, logoutFn } = useAuthenticationStateSlice();
   const [selectedIndex, setSelectedIndex] = useState(null); // for gender selection radio boxes group
   const genderOptions = ['Male', 'Female', 'Other']; // options for gender selection
+
+  const handleFormDataChange = (e) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      [e.target.name]: e.target.value,
+    }));
+  };
 
   const onChange = (event, selectedDate) => {
     setShowDatePicker(Platform.OS === 'ios'); // On iOS, keep picker open until user closes
@@ -185,19 +198,19 @@ const EditProfileScreen = () => {
     try {
       const uploadedUrl = await handleProfileImageUpload(image);
       const profileData = {
-        name,
-        email,
-        location,
-        birthday: bday.toISOString(),
+        name: formData.name,
+        email: formData.email,
+        location: formData.location,
+        birthday: formData.bday.toISOString(),
         gender: genderOptions[selectedIndex],
         imageUrl: uploadedUrl ? uploadedUrl : '',
         completedAt: new Date(),
       };
       if (!uploadedUrl ||
-        !name.trim() ||
-        !email.trim() ||
-        !location.trim() ||
-        !bday.toISOString().trim() ||
+        !formData.name.trim() ||
+        !formData.email.trim() ||
+        !formData.location.trim() ||
+        !formData.bday.toISOString().trim() ||
         selectedIndex === null ||
         !genderOptions[selectedIndex]) {
         Alert.alert('Incomplete Form', 'Please fill all fields.');
@@ -225,7 +238,6 @@ const EditProfileScreen = () => {
       <Text h3 style={styles.header}>
         Profile Details
       </Text>
-
       <Avatar
         rounded
         size="xlarge"
@@ -235,7 +247,6 @@ const EditProfileScreen = () => {
       >
         <Avatar.Accessory size={30} onPress={handleChoosePhoto} />
       </Avatar>
-
       <Input
         placeholder="Full Name"
         value={name}

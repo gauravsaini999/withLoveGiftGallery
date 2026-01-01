@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { View, Text, Dimensions, StyleSheet, Image } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
+import { colors } from './colors';
 
 const { width } = Dimensions.get('window');
 
@@ -50,14 +51,10 @@ export default function MyCarousel() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center' },
+  container: { marginTop: 20 },
   slide: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 10,
-    marginHorizontal: 10,
-    padding: 20,
   },
   img: {
     width: width-40,
@@ -81,6 +78,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   activeDot: {
-    backgroundColor: '#14a9a9',
+    backgroundColor: '#999',
   },
 });

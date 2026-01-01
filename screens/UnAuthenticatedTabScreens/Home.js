@@ -18,24 +18,8 @@ import IntraScreenBackButton from "../../components/IntraScreenBackButton";
 export default function HomeScreen() {
   const { history, push, reset: resetNavigationHistory, initPaths } = useNavigationHistory();
   const navigation = useNavigation();
-  const { reset } = useNavigationHistory();
-
   const { loginFn, isLoggedIn, userObj, logoutFn } = useAuthenticationStateSlice();
   const { firebaseConfig, setApp, setAuth, app, auth, setDb, db } = useFirebaseInit();
-
-  const [maxWidth, setMaxWidth] = React.useState(0);
-  const [maxHeight, setMaxHeight] = React.useState(0);
-
-  const updateSize = ({ nativeEvent }) => {
-    const { width, height } = nativeEvent.layout;
-    setMaxWidth(prev => Math.max(prev, width));
-    setMaxHeight(prev => Math.max(prev, height));
-  };
-
-  const commonStyle = {
-    width: maxWidth || undefined,  // allow natural layout until max is known
-    height: maxHeight || undefined,
-  };
 
   React.useLayoutEffect(() => {
     push('Home');
@@ -73,12 +57,6 @@ export default function HomeScreen() {
       resetNavigationHistory();
     }
   }, []);
-
-  React.useEffect(() => {
-    if (initPaths.length) {
-      console.log("<<<< Init Paths Array: ", initPaths);
-    }
-  }, [initPaths])
 
   async function loadFirebase() {
     let app = getApps().length ? getApp() : initializeApp(firebaseConfig);
@@ -167,27 +145,24 @@ export default function HomeScreen() {
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.scrollViewContainer}
     >
-      <MyCarousel />
-      <View style={styles.containerStyles}>
-        <View style={styles.imageContainer}>
-          <Image source={require('../../assets/logo2.png')} style={styles.image} />
-        </View>
-        <View style={styles.mainContent}>
-          <View style={styles.rowContent}>
-            <View style={styles.boxItem}>
-              <ElevatedBox boxStyle={commonStyle} onLayout={updateSize} image={require('../../assets/elephant_toy.png')} text={"With Batteries"} />
-            </View>
-            <View style={styles.boxItem}>
-              <ElevatedBox boxStyle={commonStyle} onLayout={updateSize} image={require("../../assets/game.jpg")} text={"Board Games"} />
-            </View>
+      <View style={styles.carouselContainer}>
+        <MyCarousel />
+      </View>
+      <View style={styles.cardContainer}>
+        <View style={styles.row}>
+          <View style={styles.box}>
+            <ElevatedBox image={require('../../assets/elephant_toy.png')} text={"With Batteries"} />
           </View>
-          <View style={styles.rowContent}>
-            <View style={styles.boxItem}>
-              <ElevatedBox boxStyle={commonStyle} onLayout={updateSize} image={require("../../assets/car.jpg")} text={"Manual Toys"} />
-            </View>
-            <View style={styles.boxItem}>
-              <ElevatedBox boxStyle={commonStyle} onLayout={updateSize} image={require("../../assets/outdoor.jpg")} text={"Outdoor Fun"} />
-            </View>
+          <View style={styles.box}>
+            <ElevatedBox image={require("../../assets/game.jpg")} text={"Board Games"} />
+          </View>
+        </View>
+        <View style={styles.row}>
+          <View style={styles.box}>
+            <ElevatedBox image={require("../../assets/car.jpg")} text={"Manual Toys"} />
+          </View>
+          <View style={styles.box}>
+            <ElevatedBox image={require("../../assets/outdoor.jpg")} text={"Outdoor Fun"} />
           </View>
         </View>
       </View>
@@ -197,35 +172,31 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   scrollViewContainer: {
-    paddingBottom: 20,
-    backgroundColor: colors.contentColor,
-    paddingTop: 50
-  },
-  containerStyles: {
-    flex: 1
-  },
-  imageContainer: {
     flex: 1,
-    margin: 10,
-    alignItems: 'flex-start',
+    backgroundColor: colors.screenContent[1],
   },
-  mainContent: {
-    marginVertical: 20,
-    flex: 4,
+  carouselContainer: {
+    flex: 1,
   },
-  rowContent: {
+  cardContainer: {
+    flex: 1.4,
+    justifyContent: 'space-around',
+    alignItems: 'space-around',
+  },
+  row: {
     flexDirection: 'row',
-    flex: 1,
-    paddingBottom: 20,
-  },
-  boxItem: {
-    flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'space-around',
     alignItems: 'center',
   },
+  box: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 10,
+  },
   image: {
-    width: 150,
-    height: 150,
+    width: 120,
+    height: 120,
     resizeMode: 'contain',
   },
 });

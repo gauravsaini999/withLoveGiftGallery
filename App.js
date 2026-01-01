@@ -49,7 +49,7 @@ function LoginStackNavigatorComponent() {
       screenOptions={{
         headerShown: false,
         contentStyle: {
-          backgroundColor: 'rgba(232, 241, 231, 0.5)',
+          backgroundColor: colors.screenContent[0],
         },
       }}
     >
@@ -67,7 +67,7 @@ function LoginStackNavigatorComponent() {
 
 
 function UnauthenticatedTabbedNavigator() {
-  const { setProfilePress, reset } = useNavigationHistory();
+  const { reset } = useNavigationHistory();
   const { isLoggedIn, logoutFn } = useAuthenticationStateSlice();
   const { auth } = useFirebaseInit();
 
@@ -98,9 +98,8 @@ function UnauthenticatedTabbedNavigator() {
             <MaterialIcons name="logout" size={24} color="#333" />
           </TouchableOpacity>),
         headerStyle: {
-          backgroundColor: colors.contentColor,
+          backgroundColor: colors.screenContent[1],
         },
-        headerTintColor: '#444',
         headerTitleStyle: {
           color: '#444',
           fontWeight: 'bold',
@@ -118,7 +117,7 @@ function UnauthenticatedTabbedNavigator() {
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarStyle: {
-          backgroundColor: colors.contentColor,
+          backgroundColor: colors.screenContent[1],
         },
         tabBarActiveTintColor: '#333',
         tabBarInactiveTintColor: '#444',
@@ -155,7 +154,7 @@ function AuthenticatedTabbedNavigator() {
       screenOptions={({ route }) => ({
         headerShown: true,
         headerStyle: {
-          backgroundColor: colors.contentColor,
+          backgroundColor: colors.screenContent[1],
         },
         headerRight: () => (isLoggedIn ?
           <TouchableOpacity onPress={handleLogout} activeOpacity={0.7}>
@@ -166,7 +165,6 @@ function AuthenticatedTabbedNavigator() {
         headerLeft: () => {
           return <IntraScreenBackButton />
         },
-        headerTintColor: '#444',
         headerTitleStyle: {
           color: '#444',
           fontWeight: 'bold',
@@ -184,7 +182,7 @@ function AuthenticatedTabbedNavigator() {
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarStyle: {
-          backgroundColor: colors.contentColor,
+          backgroundColor: colors.screenContent[1],
         },
         tabBarActiveTintColor: '#333',
         tabBarInactiveTintColor: '#444',
@@ -205,7 +203,7 @@ function HomeStackNavigatorComponent() {
       screenOptions={{
         headerShown: false,
         contentStyle: {
-          backgroundColor: 'rgba(232, 241, 231, 0.5)',
+          backgroundColor: colors.screenContent[1],
         },
       }}
     >

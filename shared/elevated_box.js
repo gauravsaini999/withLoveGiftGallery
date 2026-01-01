@@ -1,15 +1,32 @@
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { colors } from './colors';
+import { useState, useLayoutEffect, useRef } from 'react';
 
-const ElevatedBox = ({ image, text, boxStyle, onLayout }) => {
+const ElevatedBox = ({ image, text }) => {
+    const containerRef = useRef(null);
+    const [boxSize, setBoxSize] = useState({ width: 0, height: 0 });
+
+    useLayoutEffect(() => {
+        // measure() determines the view's size synchronously in the New Architecture
+        containerRef.current?.measure((x, y, width, height) => {
+            // Update state only if values change to avoid render loops
+            if (width !== boxSize.width || height !== boxSize.height) {
+                setBoxSize({ width, height });
+            }
+        });
+    }, []); // Empty dependency array measures on mount
+
+    console.log("Box Size: ", boxSize);
+
     return (
-        <View style={styles.container}>
-            <View style={[styles.elevatedBox, boxStyle]} onLayout={onLayout}>
+        <View style={styles.box}>
+            <View ref={containerRef} style={styles.elevatedBox}>
                 <Image
                     source={image}
                     style={{
-                        width: boxStyle?.width ? boxStyle.width - 50 : 100,
-                        height: boxStyle?.height ? boxStyle.height - 50 : 100,
+                        // Use measured dimensions minus your offset
+                        width: boxSize.width ? boxSize.width - 50 : 100,
+                        height: boxSize.height ? boxSize.height - 50 : 100,
                         resizeMode: 'contain'
                     }}
                 />
@@ -20,13 +37,16 @@ const ElevatedBox = ({ image, text, boxStyle, onLayout }) => {
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
+    box: {
+        width: 150,
+        height: 150,
+        resizeMode: 'contain',
     },
     elevatedBox: {
+        flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: colors.elevatedBox[2],
+        backgroundColor: colors.screenContent[0],
         borderRadius: 6,
         textAlign: 'center',
         paddingHorizontal: 20,
@@ -43,11 +63,6 @@ const styles = StyleSheet.create({
         },
         shadowOpacity: 0.6,
         shadowRadius: 2,
-    },
-    img: {
-        width: 150,
-        height: 150,
-        resizeMode: 'contain',
     },
     text: {
         fontSize: 12,
