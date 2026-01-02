@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, ScrollView, StatusBar, Platform, UIManager, Keyboard, TouchableWithoutFeedback, KeyboardAvoidingView, StyleSheet } from 'react-native';
+import { View, ScrollView, StatusBar, Platform, UIManager, Keyboard, TouchableWithoutFeedback, KeyboardAvoidingView, TouchableOpacity, Text } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import LoginScreen from "react-native-login-screen";
 import { useFirebaseInit } from '../../zustand/useFirebaseInit';
@@ -11,6 +11,7 @@ import ProfileIconButton from '../../components/ProfileButton';
 import TextInput from "react-native-text-input-interactive";
 import Toast from 'react-native-toast-message';
 import { width as ScreenWidth, height as ScreenHeight } from '../../shared/GetScreenSize';
+import { colors } from '../../shared/colors';
 
 if (
   Platform.OS === 'android' &&
@@ -69,11 +70,11 @@ const ProfileScreen = () => {
     React.useCallback(() => {
       const parent = navigation.getParent();
       parent.setOptions({
-        headerRight: () => <ProfileIconButton changeStyle={true} onPress={() => {
+        headerRight: () => <View style={{ marginRight: 10 }}><ProfileIconButton changeStyle={true} onPress={() => {
           if (navigation.getState().routes[navigation.getState().index].name !== 'Authenticate Screen') {
             navigation.navigate('Auth', { screen: "Authenticate Screen" });
           }
-        }} />,
+        }} /></View>,
         headerLeft: () => <IOSBackButton />,
       })
     }, [navigation]))
@@ -95,27 +96,8 @@ const ProfileScreen = () => {
       else if (values.password && values.password == enteredValue) {
         Keyboard.dismiss();
       }
-      // if (debounceTimeout.current) {
-      //   clearTimeout(debounceTimeout.current);
-      // }
-
-      // // Start a new debounce timeout
-      // debounceTimeout.current = setTimeout(() => {
-      //   if (enteredValue.length > 0) {
-      //     console.log('User idle after password entry. Dismissing keyboard...');
-      //     Keyboard.dismiss();
-      //   }
-      // }, 1000); // 2 second debounce
     }
   }
-
-  // React.useEffect(() => {
-  //   return () => {
-  //     if (debounceTimeout.current) {
-  //       clearTimeout(debounceTimeout.current);
-  //     }
-  //   };
-  // }, []);
 
   const handleUsernameFocus = () => {
     focusRef.current = 'username_focussed';
@@ -298,16 +280,15 @@ const ProfileScreen = () => {
       logoImageStyle={{ width: ScreenWidth / 2.5, resizeMode: 'contain' }}
       logoImageSource={require('../../assets/logo2.png')}
       onLoginPress={handleSignup}
-      onSignupPress={() => { setEnableSignUp({ value: false, from: "sign up button press" }) }}
+      onSignupPress={() => { }}
+      customSignupButton={<SignUpButton inUpVal="false" />}
       onEmailChange={handleChange.bind(this, 'username')}
       loginButtonText={'Sign Up'}
-      signupText={"Sign In Instead"}
-      // enablePasswordValidation
       emailTextInputProps={{
-        textInputStyle: { fontSize: 12, maxWidth: ScreenWidth * 0.6, maxHeight: 40 }
+        textInputStyle: { fontSize: 12, maxWidth: ScreenWidth * 0.7, maxHeight: 40 }
       }}
       passwordTextInputProps={{
-        textInputStyle: { fontSize: 12, maxWidth: ScreenWidth * 0.6, maxHeight: 40 }
+        textInputStyle: { fontSize: 12, maxWidth: ScreenWidth * 0.7, maxHeight: 40 }
       }}
       textInputChildren={
         <View style={{ marginTop: 16 }}>
@@ -318,28 +299,48 @@ const ProfileScreen = () => {
             enableIcon={true}
             iconImageSource={!visible ? require('../../assets/eye.png') : require('../../assets/eye-off.png')}
             onIconPress={() => setVisible(v => !v)}
-            textInputStyle={{ width: ScreenWidth * 0.6, maxHeight: 40, fontSize: 12 }}
+            textInputStyle={{ width: ScreenWidth * 0.7, maxHeight: 40, fontSize: 12 }}
           />
         </View >
       }
       onPasswordChange={handleChange.bind(this, 'password')}
       disableSocialButtons={true}
       dividerStyle={{ display: 'none' }}
-      loginButtonStyle={{ maxWidth: ScreenWidth * 0.5, height: 40 }}
+      loginButtonStyle={{ maxWidth: ScreenWidth * 0.2, height: 40, backgroundColor: colors.signInUpButton }}
       loginTextStyle={{ fontSize: 12 }}
-      signupTextStyle={{ fontSize: 12 }}
     />
   )
+
+  const SignUpButton = ({ inUpVal }) => (
+    <View style={{
+      backgroundColor: colors.signInUpButton,
+      flexDirection: 'row', 
+      justifyContent: 'center', 
+      marginTop: 26, 
+      borderRadius: 6, 
+      overflow: 'hidden',
+      alignItems: 'center',
+      alignSelf: 'center',
+      color: '#fff'
+    }}>
+      <TouchableOpacity
+        onPress={() => setEnableSignUp({ value: JSON.parse(inUpVal), from: "sign in button press" })}
+        style={{ paddingHorizontal: 10, paddingVertical: 6 }}
+      >
+        <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 14 }}>{JSON.parse(inUpVal) ? "Please create an account.." : "Please log in instead.."}</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   const renderLoginScreen = () => (
     <LoginScreen
       logoImageSource={require('../../assets/logo2.png')}
-      signupText={"Sign Up Instead"}
       onLoginPress={handleSignIn}
-      onSignupPress={() => setEnableSignUp({ value: true, from: "sign up button press" })}
       onEmailChange={handleChange.bind(this, 'username')}
+      onSignupPress={() => { }}
+      customSignupButton={<SignUpButton inUpVal="true" />}
       onPasswordChange={handleChange.bind(this, 'password')}
-      loginTextStyle={{ fontSize: 12 }}
+      loginTextStyle={{ fontSize: 14 }}
       loginButtonText={'Sign In'}
       dividerStyle={{ display: 'none' }}
       logoImageStyle={{ width: ScreenWidth / 2.5, resizeMode: 'contain' }}
@@ -349,7 +350,7 @@ const ProfileScreen = () => {
         returnKeyType: "next",
         onFocus: handleUsernameFocus,
         value: values['username'],
-        textInputStyle: { fontSize: 12, maxWidth: ScreenWidth * 0.6, maxHeight: 40 }
+        textInputStyle: { fontSize: 12, maxWidth: ScreenWidth * 0.7, maxHeight: 40 }
       }}
       passwordTextInputProps={{
         autoComplete: "password",
@@ -357,11 +358,10 @@ const ProfileScreen = () => {
         returnKeyType: "done",
         onFocus: handlePasswordFocus,
         value: values['password'],
-        textInputStyle: { fontSize: 12, maxWidth: ScreenWidth * 0.6, maxHeight: 40 }
+        textInputStyle: { fontSize: 12, maxWidth: ScreenWidth * 0.7, maxHeight: 40 }
       }}
       disableSocialButtons={true}
-      loginButtonStyle={{ maxWidth: ScreenWidth * 0.5, height: 40 }}
-      signupTextStyle={{ fontSize: 12 }}
+      loginButtonStyle={{ maxWidth: ScreenWidth * 0.2, height: 40, backgroundColor: colors.signInUpButton, fontWeight: 'bold' }}
     />
   );
 

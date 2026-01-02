@@ -4,5 +4,8 @@ export const colors = {
     elevatedBox: ['rgba(87, 235, 67, 0.5)', '#ffb6c1', '#EEE'],
     contentColor: '#4dc2c2',
     backButtonText: '#444',
-    backButton: '#444'
+    backButton: '#444',
+    profileIcon: '#777',
+    profileIconActive: '#666',
+    signInUpButton: '#51d041ff',
 }

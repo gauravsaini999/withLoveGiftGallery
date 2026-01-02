@@ -65,7 +65,8 @@ const styles = StyleSheet.create({
         shadowRadius: 2,
     },
     text: {
-        fontSize: 12,
+        fontSize: 18,
+        color: '#444',
         textAlign: 'center'
     },
 });

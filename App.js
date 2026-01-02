@@ -119,8 +119,8 @@ function UnauthenticatedTabbedNavigator() {
         tabBarStyle: {
           backgroundColor: colors.screenContent[1],
         },
-        tabBarActiveTintColor: '#333',
-        tabBarInactiveTintColor: '#444',
+        tabBarActiveTintColor: colors.profileIconActive,
+        tabBarInactiveTintColor: colors.profileIcon,
       })}>
       <Tab.Screen name="Home" component={HomeStackNavigatorComponent} />
       <Tab.Screen name="Selected Toys" component={SelectedScreen} />

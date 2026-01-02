@@ -41,13 +41,13 @@ export default function HomeScreen() {
       const parent = navigation.getParent();
       parent.setOptions({
         headerTitle: 'Home',
-        headerLeft: history.length > 1 ? () => <IOSBackButton /> : () => <IntraScreenBackButton />,
         headerRight: () => (isLoggedIn ?
-          <TouchableOpacity onPress={handleLogout} activeOpacity={0.7}>
-            <MaterialIcons name="logout" size={20} color="#333" style={{ marginRight: 10 }} />
-          </TouchableOpacity> : <ProfileIconButton onPress={() => {
-            navigation.navigate('Auth', { screen: "Authenticate Screen" });
-          }} changeStyle={false} />),
+          <View style={{ marginRight: 10 }}>
+            <TouchableOpacity onPress={handleLogout} activeOpacity={0.7}>
+              <MaterialIcons name="logout" size={20} color="#333" style={{ marginRight: 10 }} />
+            </TouchableOpacity></View> : <View style={{ marginRight: 10 }}><ProfileIconButton onPress={() => {
+              navigation.navigate('Auth', { screen: "Authenticate Screen" });
+            }} changeStyle={false} /></View>),
       })
     }, [navigation, history])
   );
