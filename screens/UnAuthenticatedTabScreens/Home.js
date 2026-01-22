@@ -21,6 +21,7 @@ export default function HomeScreen() {
   const { loginFn, isLoggedIn, userObj, logoutFn } = useAuthenticationStateSlice();
   const { firebaseConfig, setApp, setAuth, app, auth, setDb, db } = useFirebaseInit();
 
+  console.log(firebaseConfig, "<<<<<< >>>>>>>");
   React.useLayoutEffect(() => {
     push('Home');
   }, []);

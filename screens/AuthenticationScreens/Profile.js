@@ -41,22 +41,6 @@ const ProfileScreen = () => {
   const focusRef = React.useRef(null)
   const [focusVal, setFocusVal] = React.useState('')
 
-  const decideNEmpty = () => {
-    if (enableSignUp["value"]) {
-      setValues({
-        username: '', password: '', repassword: '', error: ''
-      })
-    }
-    else {
-      setValues({
-        username: '', password: '', error: ''
-      })
-      if (enableSignUp['from'] === "sign up flow") {
-
-      }
-    }
-  }
-
   React.useEffect(() => {
     decideNEmpty();
   }, [enableSignUp["value"]])
@@ -214,45 +198,79 @@ const ProfileScreen = () => {
 
   const handleSignIn = async () => {
     const validated = validateInputs();
-    if (!validated) return;
+    if (!validated) {
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Failure!',
+        text2: 'Please fill username and password to proceed.',
+        position: 'top',
+        topOffset: 100,
+      });
+      return;
+    }
     try {
-      await signInWithEmailAndPassword(auth, values.username, values.password);
-      await auth.currentUser.reload();
-      const currentUser = auth.currentUser;
-      if (currentUser) {
-        loginFn({ userObj: currentUser });
-        async function sendVerify() {
-          await sendEmailVerification(currentUser);
-          Toast.show({
-            type: 'success',
-            text1: 'Verification Email Sent Again!',
-            text2: 'Check your Inbox / Spam/ Junk to verify your account.',
-            position: 'top',
-            topOffset: 100,
-          });
-        }
-        async function cb() {
-          if (currentUser.emailVerified) {
-            const isPhoneLinked = currentUser.phoneNumber == undefined ? null : true;
-            if (!isPhoneLinked) {
-              console.log("isPhoneLinked = ", isPhoneLinked);
+      if (auth?.currentUser) {
+        Toast.show({
+          type: 'success',
+          text1: 'Auth Object Display !',
+          text2: `${JSON.stringify(auth)}`,
+          position: 'top',
+          topOffset: 100,
+        });
+        await signInWithEmailAndPassword(auth, values.username, values.password);
+        await auth.currentUser.reload();
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+          loginFn({ userObj: currentUser });
+          async function sendVerify() {
+            await sendEmailVerification(currentUser);
+            Toast.show({
+              type: 'success',
+              text1: 'Verification Email Sent Again!',
+              text2: 'Check your Inbox / Spam/ Junk to verify your account.',
+              position: 'top',
+              topOffset: 100,
+            });
+          }
+          async function cb() {
+            if (currentUser.emailVerified) {
+              const isPhoneLinked = currentUser.phoneNumber == undefined ? null : true;
+              if (!isPhoneLinked) {
+                console.log("isPhoneLinked = ", isPhoneLinked);
+                Toast.show({
+                  type: 'info',
+                  text1: 'Verify Your Mobile Number!',
+                  text2: 'Please link your mobile number with your account.',
+                  position: 'top',
+                  topOffset: 100,
+                });
+                navigation.navigate('Auth', { screen: 'Phone Link' });
+              }
+              console.log('Email is verified, navigating to Home screen');
               Toast.show({
-                type: 'info',
-                text1: 'Verify Your Mobile Number!',
-                text2: 'Please link your mobile number with your account.',
+                type: 'success',
+                text1: 'Email Verified!',
+                text2: 'You are now logged in.',
                 position: 'top',
                 topOffset: 100,
               });
-              navigation.navigate('Auth', { screen: 'Phone Link' });
+              navigation.navigate('Home');
             }
-            console.log('Email is verified, navigating to Home screen');
-            navigation.navigate('Home');
+            else {
+              await sendVerify();
+            }
           }
-          else {
-            await sendVerify();
-          }
+          handleReset(cb);
         }
-        handleReset(cb);
+      }
+      else {
+        Toast.show({
+          type: 'error',
+          text1: 'Auth Not Initialized!',
+          text2: 'Auth Object Was Not Found.',
+          position: 'top',
+          topOffset: 100,
+        });
       }
     } catch (err) {
       Toast.show({
@@ -272,6 +290,22 @@ const ProfileScreen = () => {
     decideNEmpty();
     if (cb) {
       cb()
+    }
+  }
+
+  const decideNEmpty = () => {
+    if (enableSignUp["value"]) {
+      setValues({
+        username: '', password: '', repassword: '', error: ''
+      })
+    }
+    else {
+      setValues({
+        username: '', password: '', error: ''
+      })
+      if (enableSignUp['from'] === "sign up flow") {
+
+      }
     }
   }
 
@@ -314,10 +348,10 @@ const ProfileScreen = () => {
   const SignUpButton = ({ inUpVal }) => (
     <View style={{
       backgroundColor: colors.signInUpButton,
-      flexDirection: 'row', 
-      justifyContent: 'center', 
-      marginTop: 26, 
-      borderRadius: 6, 
+      flexDirection: 'row',
+      justifyContent: 'center',
+      marginTop: 26,
+      borderRadius: 6,
       overflow: 'hidden',
       alignItems: 'center',
       alignSelf: 'center',
